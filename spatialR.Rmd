@@ -1,0 +1,499 @@
+---
+title: "Introduction to spatial tasks with R"
+author: "Francois Rousseu"
+date: '2017-07-17'
+output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+  html_notebook:
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+  html_document:
+    depth: 4
+    number_sections: yes
+    toc: yes
+geometry: left=2cm,right=2cm,top=3cm,bottom=2.5cm
+---
+
+<script>
+   $(document).ready(function() {
+     $head = $('#header');
+     $head.prepend('<img src=\"cef.gif\" style=\"float: right;width: 75px;\"/>')
+   });
+</script>
+
+```{r options, include=TRUE, cache=FALSE, echo=FALSE, message=FALSE}
+options(width=80)
+knitr::opts_chunk$set(cache=TRUE,comment="##",echo=TRUE,message=FALSE,warning=FALSE,tidy=TRUE,size="small",fig.align="center")
+
+```
+
+# Introduction
+
+The main book for learning to use R for spatial data is probably [Applied Spatial Data Analysis with R](http://www.asdar-book.org/) by Bivand et al. (2013)
+
+## Packages
+
+## Polygons
+
+### locator
+### getpoly
+
+## `sp` vs. `sf` ?
+  
+# Shapefiles
+
+## Reading and writing
+
+Reading shaepfile is done with the function `readOGR` from the `rgdal` package
+```{r read}
+library(rgdal)
+route<-readOGR("C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="carreteras",verbose=FALSE)
+class(route)
+plot(route)
+
+```
+
+```{r write}
+
+```
+
+## Accessing data with S4 class
+
+## The `Spatial` class with `sp`
+
+```{r class}
+library(sp)
+getClass("Spatial")
+```
+
+## Building shapefiles
+
+### From scratch
+
+```{r shpscratch}
+
+set.seed(123)
+n<-10
+x<-rnorm(n,0,1)
+y<-rnorm(n,0,1)
+id<-1:n
+shp<-SpatialPointsDataFrame(cbind(x,y),data=data.frame(id))
+head(shp)
+plot(shp)
+
+```
+
+
+```{r shpscratchpol}
+
+library(magrittr)
+
+m<-rbind(c(1,1),c(1,2),c(2,2),c(2,1))
+z<-rbind(m, m[1, ]) %>% Polygon %>% list %>% Polygons(ID = 1) %>% list %>% SpatialPolygons
+plot(z)
+```
+
+### From a `data.frame`
+
+```{r shpdf}
+data(meuse)
+head(meuse)
+coordinates(meuse)<-~x+y
+class(meuse)
+plot(meuse)
+
+```
+
+## Spatial operations
+
+Most spatial operation are done using the package `rgeos`. One of the requirement of the functions is that objects should be projected. When objects are really large, some operation may start to take a long time (e.g. intersections).
+
+### Overlay things
+
+
+
+### Cut or delimit things
+
+Here are some common operations that can be done on points (but also lines or polygons.
+
+```{r points_op, fig.width=7,fig.height=4,out.width="100%"}
+library(rgeos)
+
+op<-c("gBuffer","gConvexHull","gCentroid","gEnvelope","gDelaunayTriangulation")
+par(mfrow=c(2,3),mar=c(0,0,3,0))
+for(i in seq_along(op)){
+  plot(shp,main=op[i],xlim=c(-2,2),ylim=c(-2,2))
+  plot(get(op[i])(shp),col=gray(0.5,0.5),add=TRUE,pch=16,cex=3)
+}
+
+```
+
+Here are some common opetrations that are done on polygons.
+
+```{r polygons_op, fig.height=2}
+
+x<-gBuffer(shp[1,],width=1)
+y<-gBuffer(shp[2,],width=1)
+
+op<-c("gIntersection","gDifference","gSymdifference","gUnion")
+par(mfrow=c(2,2),mar=c(0,0,3,0))
+for(i in seq_along(op)){
+  plot(x,main=op[i],xlim=c(-2,2),ylim=c(-2,2))
+  plot(y,add=TRUE)
+  plot(get(op[i])(x,y),add=TRUE,col="red")
+}
+
+```
+
+### Measure things
+
+```{r measure_distance, fig.width=7,fig.height=3,out.width="100%"}
+
+gDistance(shp,byid=TRUE)
+
+```
+
+```{r measure_area, fig.width=7,fig.height=5,out.width="100%"}
+
+ch<-gDelaunayTriangulation(shp)
+area<-gArea(ch,byid=TRUE)
+plot(ch,axes=TRUE)
+text(coordinates(ch)[,1],coordinates(ch)[,2],round(area,2),cex=0.7)
+
+```
+
+### Simplify things
+
+```{r simplify, fig.width=3,fig.height=3,out.width="100%"}
+
+n<-50
+x<-rnorm(n)
+y<-rnorm(n)
+poly<-gBuffer(SpatialPoints(cbind(x,y)),width=0.5)
+plot(poly)
+plot(gSimplify(poly,tol=0.6,topologyPreserve=TRUE),border="red",add=TRUE)
+
+```
+
+#### spsample, elide, mst
+
+## Plotting
+
+### plot
+
+```{r plot, fig.width=3,fig.height=3,out.width="100%"}
+
+par(mar=c(0,0,0,0))
+plot(ch,border="red",col="blue",lwd=3)
+
+```
+
+### spplot
+
+```{r spplot, fig.width=6.5,fig.height=4,out.width="100%"}
+
+spplot(meuse)
+
+```
+
+## The new package sf
+
+# Projections
+
+As always, when playing with spatial data, one needs to be aware of projections. Assigning and transforming projections in R is not to difficult. It is mostly done with the `proj4string` and `spTransform` functions from package **rgdal**. 
+
+```{r proj_data, fig.width=6.5,fig.height=4,out.width="100%"}
+
+library(rgbif)
+
+x<-occ_search(scientificName="Phragmites australis",limit=500,hasCoordinate=TRUE,country="CA")
+x<-as.data.frame(x$data)
+coordinates(x)<-~decimalLongitude+decimalLatitude
+
+```
+
+## Assign a projection
+
+```{r proj_assign}
+
+proj4string(x)
+proj4string(x)<-CRS("+proj=longlat +datum=WGS84 +ellps=WGS84")
+#proj4string(x)<-CRS("+init=epsg:4326")
+proj4string(x)
+
+```
+
+## Change a projection
+
+```{r proj_change, fig.width=10, fig.height=6}
+
+canada<-readOGR("C:/Users/rouf1703/Documents/UdeS/Formation/Canada",layer="Canada")
+proj4string(canada)
+
+crs<-c("+proj=longlat +datum=WGS84 +ellps=WGS84",
+       "+proj=utm +zone=18 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0",
+       "+proj=utm +zone=10 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0",
+       "+proj=laea +lat_0=34 +lon_0=-10 +ellps=GRS80")
+
+par(mfrow=c(2,2),mar=c(2,3,2,0))
+
+for(i in 1:length(crs)){
+  canada2<-spTransform(canada,CRS(crs[i]))
+  x2<-spTransform(x,CRS(crs[i]))
+  plot(canada2,axes=TRUE,main=crs[i],cex.main=0.7)
+  plot(x2,add=TRUE) 
+  
+}
+
+
+```
+
+## Projections and EPSG
+
+Projections can also be given with their epsg number. More info on projections can be found here [epsg.io](http://epsg.io/) where a list of the different epsg is available
+
+```{r proj_epsg}
+
+x<-spTransform(x,CRS("+init=epsg:4326"))
+proj4string(x)
+
+```
+
+# Rasters
+
+## What is a raster?
+
+## Building a raster
+
+Here is an example of building a simple raster with random values.
+```{r buildrastersimple}
+library(raster)
+
+n<-50
+r<-raster(nrow=50,ncol=50,ext=extent(canada))
+r<-setValues(r,runif(n^2))
+ncell(r)
+plot(r)
+plot(canada,add=TRUE)
+
+```
+
+Here is an example of building a raster where each pixel value is determined by the number of points in each cell.
+```{r buildrastercomplex}
+library(raster)
+library(rgbif)
+
+x<-occ_search(scientificName="Catharus bicknelli",limit=5000,hasCoordinate=TRUE,country="CA")
+x<-as.data.frame(x$data)
+coordinates(x)<-~decimalLongitude+decimalLatitude
+
+r<-raster(nrow=50,ncol=50,ext=extent(canada))
+r<-rasterize(x,r,field=1,fun="count",background=0)
+
+plot(r,col=rev(heat.colors(100)))
+plot(canada,col=gray(0,0.05),border=gray(0,0.01),add=TRUE)
+points(x,col=gray(0,0.1))
+
+```
+
+## Raster formats
+
+## Read, write, merge, crop
+
+```{r read_rast}
+
+r1<-raster("C:/Users/rouf1703/Documents/UdeS/Formation/cdem_dem_021E_tif/cdem_dem_021E.tif")
+r2<-raster("C:/Users/rouf1703/Documents/UdeS/Formation/cdem_dem_031H_tif/cdem_dem_031H.tif")
+par(mfrow=1:2)
+plot(r1)
+plot(r2)
+
+r1
+
+```
+
+
+```{r merge}
+
+r1<-aggregate(r1,10)
+r2<-aggregate(r2,10)
+r<-merge(r1,r2)
+plot(r)
+
+```
+
+
+```{r crop}
+
+e <- extent(-72.75, -70.25, 45, 46)
+r <- crop(r, e)
+plot(r)
+
+```
+
+## Stacks and Bricks
+
+```{r stack}
+
+
+
+```
+
+
+## Raster operations
+
+### Summarize
+
+
+```{r summ}
+
+r
+
+```
+
+### Extract
+
+```{r extract}
+
+e<-extract(r,x)
+hist(e,xlab="Altitude",main="")
+
+```
+
+### Reclassify
+
+```{r reclassify}
+
+mn<-c(0,100,200,400,600,800)
+mx<-c(100,200,400,600,800,1200)
+mat<-cbind(mn,mx,lab=mx)
+mat
+rc<-reclassify(r,mat)
+plot(rc,col=terrain.colors(nrow(mat)))
+
+```
+
+
+### Countour and rasterToContours
+
+### Speeding things up with `velox`
+
+```{r velox}
+library(velox)
+library(microbenchmark)
+
+rv<-velox(r)
+
+buff<-gBuffer(x,byid=TRUE,width=0.02)
+plot(r)
+plot(buff,add=TRUE)
+
+system.time(extract(r,buff,fun=mean))
+system.time(rv$extract(buff,fun=mean))
+
+```
+
+## From shp to raster and back
+
+### Rasterizing a polygon
+
+```{r rasterizepol}
+
+pr<-rasterize(buff,r)
+pr
+plot(pr)
+
+```
+
+### Polygonizing a raster
+
+## Plotting with `rasterVis`
+
+# `SpatialGrids` and `SpatialPixels`
+
+## Grids
+
+## Pixels
+
+# Static Mapping
+
+## `plot`
+
+## `levelplot`
+
+## `spplot`
+
+## `ggplot` and `ggmap`
+
+## `ggspatial`
+
+## chloropleth mapping
+
+# Interactive Mapping
+
+## `OpenStreetMap`
+
+## `leaflet`
+
+## `tmap` 
+
+## `mapview`
+
+## `mapedit`
+
+Here is a test with using mapedit functionality.
+
+```{r mapedit, eval=FALSE}
+library(mapview)
+library(mapedit)
+library(sp)
+
+x <- mapview() %>% editMap()
+plot(x)
+x <- as(x[[1]],"Spatial")
+plot(x)
+
+```
+
+# More possibilities
+
+## Spatial Task View
+
+## Reference Site: rspatial.org
+
+## Special packages
+
+### Spatial statistics with `spatstat`
+
+### Spatial dependence with `spdep`
+
+### Kriging with `gstat`
+
+### Animal movements with `adehabitat` and `trip`
+
+### Kernel smoothing with `ks`
+
+### Great circles with `geosphere`
+
+## Extensions
+
+### RQGIS
+
+### RpostGIS
+
+### RGRASS
+
+# `sf`: The new spatial
+
+## Why?
+
+### S3 classes
+
+### Tidyverse
+
+### From `sp` to `sf` and back
+
