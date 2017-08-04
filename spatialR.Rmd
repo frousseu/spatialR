@@ -3,18 +3,18 @@ title: "Introduction to spatial tasks with R"
 author: "Francois Rousseu"
 date: '2017-07-17'
 output:
-  pdf_document:
-    number_sections: yes
-    toc: yes
-    toc_depth: 4
-  html_notebook:
-    number_sections: yes
-    toc: yes
-    toc_depth: 4
   html_document:
     depth: 4
     number_sections: yes
     toc: yes
+  html_notebook:
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
 geometry: left=2cm,right=2cm,top=3cm,bottom=2.5cm
 ---
 
@@ -24,6 +24,12 @@ geometry: left=2cm,right=2cm,top=3cm,bottom=2.5cm
      $head.prepend('<img src=\"cef.gif\" style=\"float: right;width: 75px;\"/>')
    });
 </script>
+
+<style>
+pre.r {
+    background-color: #CCCCCC !important;
+}
+</style>
 
 ```{r options, include=TRUE, cache=FALSE, echo=FALSE, message=FALSE}
 options(width=80)
