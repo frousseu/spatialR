@@ -12,15 +12,21 @@ output:
     toc_float:
       collapsed: yes
       smooth_scroll: no
+  beamer_presentation: null
   html_notebook:
     number_sections: no
     toc: yes
     toc_depth: 4
+  ioslides_presentation:
+    smaller: yes
+    transition: faster
+    widescreen: yes
   pdf_document:
     number_sections: yes
     toc: yes
     toc_depth: 4
 geometry: left=2cm,right=2cm,top=3cm,bottom=2.5cm
+always_allow_html: yes
 ---
 
 <script>
@@ -32,7 +38,8 @@ geometry: left=2cm,right=2cm,top=3cm,bottom=2.5cm
 
 <style>
 pre.r {
-    background-color: #CCCCCC !important;
+    background-color: #EEEEEE!important;
+    border-color: #EEEEEE!important;
 }
 </style>
 
@@ -52,44 +59,21 @@ knitr::opts_chunk$set(cache=TRUE,comment="##",echo=TRUE,message=FALSE,warning=FA
 
 The main book for learning to use R for spatial data is probably [Applied Spatial Data Analysis with R](http://www.asdar-book.org/) by Bivand et al. (2013)
 
-## Packages
-
-## Polygons
-
-## `sp` vs. `sf` ?
-  
 # SHAPEFILES
 
+The main packages directly used for working with shapefiles and doing spatial operations are sp, rgdal and rgeos.
+<br>
 
+| Package | Use |
+| :-------------:|:----------------------------------------|
+| **sp** | Defines S4 spatial classes and methods for manipulating spatial objects |
+| **rgdal** | Provides bindings with the GDAL and PROJ.4 libraries for reading, projections, coordinate transformations, etc. |
+| **rgeos** | Provides bindings for the GEOS library for spatial operations (intersections, buffers, etc.) | 
+| **maptools** |  | 
+| **sf** | New S3 spatial classes and methods for manipulating spatial objects as simple features |
+| **spdep** | Tools for studying spatial dependence |
 
-## From a `data.frame`
-
-Let's load some data that contains locations of Jaguars attacks in the kalakmul reserve in Mexico. Interviews were done with farmers about whether attacks from jaguars (or cougars) happened with their cattle. 
-
-```{r shpdf1}
-
-cat<-read.table("C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc/cat.txt",header=TRUE,stringsAsFactors=FALSE)
-#write.table(cat[,c("X","Y","Attack")],"C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc/cat.txt",row.names=FALSE)
-head(cat)
-
-```
-
-This is a simple data.frame with X and Y columns representing longitudes and latitudes. To transform this data.frame to a spatial object, we just have to do this:
-```{r shpdf2}
-
-coordinates(cat)<-~X+Y
-class(cat)
-
-```
-
-The object returned is now a `SpatialPointsDataFrame`. This object can be simply plotted with the function plot which has a method for Spatial objects.
-
-```{r shpdf3, out.width="70%"}
-
-plot(cat,axes=TRUE, xlab="Longitude", ylab="Latitude")
-
-```
-
+<br>
 
 ## Reading and writing
 
@@ -99,9 +83,11 @@ Reading shapefiles is done with the function `readOGR` from the `rgdal` package.
 
 ```{r read}
 
+library(sp)
 library(rgdal)
-roads<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="roads",verbose=FALSE,encoding="UTF-8")
-pop<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="pop",verbose=FALSE,encoding="UTF-8")
+#roads<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="roads",verbose=FALSE,encoding="UTF-8")
+roads<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="carreteras",verbose=FALSE,encoding="UTF-8")
+#pop<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="pop",verbose=FALSE,encoding="UTF-8")
 
 class(roads)
 
@@ -110,9 +96,9 @@ class(roads)
 
 ```{r read2, out.width="70%"}
 
+library(scales) # to use alpha for adding transparency
+
 plot(roads,col=gray(0.75),lwd=4, axes=TRUE)
-plot(pop,add=TRUE,cex=1+10*pop$POBTOT/max(pop$POBTOT),col=alpha("green4",0.25),pch=15)
-plot(cat,add=TRUE,col=alpha(ifelse(cat$Attack==0,"blue","red"),0.4),pch=16,cex=1.5)
 
 ```
 
@@ -121,16 +107,44 @@ plot(cat,add=TRUE,col=alpha(ifelse(cat$Attack==0,"blue","red"),0.4),pch=16,cex=1
 
 ```{r write, eval=FALSE}
 
-writeOGR(cat,dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="cat",driver="ESRI Shapefile")
+writeOGR(roads,dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="cat",driver="ESRI Shapefile")
+
+```
+
+## Building shapefiles
+
+### From a `data.frame`
+
+Let's load some data that contains locations of Jaguars attacks in the kalakmul reserve in Mexico. Interviews were done with farmers about whether attacks from jaguars (or cougars) happened with their cattle. 
+
+```{r shpdf1}
+
+cat<-read.table("C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc/cat.txt",header=TRUE,stringsAsFactors=FALSE)
+head(cat)
+
+```
+
+This is a simple data.frame with X and Y columns representing longitudes and latitudes. To transform this data.frame to a spatial object, we just have to do this:
+```{r shpdf2}
+
+library(sp)
+coordinates(cat)<-~X+Y
+class(cat)
+
+```
+
+The object returned is now a `SpatialPointsDataFrame`. This object can be simply plotted with the function plot which has a method for Spatial objects.
+
+```{r shpdf3, out.width="60%"}
+
+plot(cat,col=alpha(ifelse(cat$Attack==0,"blue","red"),0.4),pch=16,cex=1.5,axes=TRUE)
 
 ```
 
 
-## Building shapefiles
-
 ### From scratch
 
-```{r shpscratch}
+```{r shpscratch, out.width="50%"}
 
 set.seed(123)
 n<-10
@@ -144,7 +158,7 @@ plot(x,axes=TRUE)
 ```
 
 To close a polygon, the last point of the matrix needs to be the first point that starts the polygon.
-```{r xscratchpol}
+```{r xscratchpol, out.width="50%"}
 
 library(magrittr)
 
@@ -168,14 +182,13 @@ plot(z,axes=TRUE)
 
 ```{r class}
 
-library(sp)
 getClass("Spatial")
 
 ```
 
 ## Spatial operations
 
-Most spatial operation are done using the package `rgeos`. One of the requirement of the functions is that objects should be projected. When objects are really large, some operation may start to take a long time (e.g. intersections).
+Most spatial operations are done using the package `rgeos`. One of the requirement of the functions is that objects should be projected. When objects are really large, some operation may start to take a long time (e.g. intersections).
 
 ### Cut or delimit things
 
@@ -188,14 +201,14 @@ op<-c("gCentroid","gEnvelope","gConvexHull","gBuffer","gDelaunayTriangulation")
 par(mfrow=c(2,3),mar=c(0,0,3,0))
 for(i in seq_along(op)){
   plot(x,main=op[i],xlim=c(-2,2),ylim=c(-3,3))
-  plot(get(op[i])(x),col=gray(0.5,0.5),add=TRUE,pch=16,cex=3,border=NA)
+  plot(get(op[i])(x),col=gray(0.5,0.5),add=TRUE,pch=16,cex=3)
 }
 
 ```
 
 Here are some common operations that are done on polygons.
 
-```{r polygons_op, fig.width=7, fig.height=4}
+```{r polygons_op, fig.width=7, fig.height=4,out.width="100%"}
 
 x1<-gBuffer(x[1,],width=1)
 x2<-gBuffer(x[2,],width=1)
@@ -223,7 +236,7 @@ text(x,round(gDistance(x,cx,byid=TRUE),2),adj=c(0,1.3),cex=0.8)
 ```
 
 
-```{r measure_area, fig.width=7,fig.height=5,out.width="100%"}
+```{r measure_area, fig.width=7,fig.height=5,out.width="70%"}
 
 ch<-gDelaunayTriangulation(x)
 area<-gArea(ch,byid=TRUE)
@@ -238,7 +251,7 @@ Sample points in polygons in different ways using the `spsample` function.
 
 ```{r sample, fig.width=7,fig.height=5,out.width="70%"}
 
-set.seed(123)
+set.seed(12345)
 
 n<-50
 type<-c("random","stratified","regular","hexagonal")
@@ -251,6 +264,22 @@ for(i in seq_along(type)){
 
 ```
 
+Random points can also be distributed within random polygons
+```{r sample2, fig.width=7,fig.height=5,out.width="70%"}
+
+set.seed(12345)
+
+N<-10 # number of random polygons
+n<-5 # number of random points within each polygons
+
+plot(z)
+s1<-gBuffer(spsample(z,N,type="random"),byid=TRUE,width=0.1)
+plot(s1,add=TRUE)
+s2<-sapply(s1@polygons,spsample,n=n,type="random")
+s2<-do.call("rbind",s2)
+plot(s2,add=TRUE)
+
+```
 
 ### Overlay things
 
@@ -274,7 +303,7 @@ Let's determine which buffer touch any road.
 ```{r over2, fig.width=8,fig.height=7,out.width="60%",echo=-(1:10)}
 <<over>>
 o<-over(buffs,roads)
-plot(buffs[apply(o,1,function(i){!all(is.na(i))}),],col=alpha("red",0.3),border=NA,lwd=2,add=TRUE)
+plot(buffs[apply(o,1,function(i){!all(is.na(i))}),],col=alpha("darkgreen",0.3),border=NA,lwd=2,add=TRUE)
 ```
 
 Extract sections of road that intersect with a buffer.
@@ -293,7 +322,7 @@ o<-over(buffs,int,returnList=TRUE)
 dist<-sapply(o,function(i){
   sum(gLength(int[i],byid=TRUE))  
 })
-shadowtext(coordinates(buffs),labels=round(dist/1000,1),col="black",bg="white")
+shadowtext(coordinates(buffs),labels=round(dist/1000,1),col="black",bg="white",adj=c(-1,-2))
 ```
 
 ### Simplify things
@@ -347,7 +376,7 @@ plot(ch,border="red",col="blue",lwd=10)
 ### Access slots with @
 
 ```{r S4names}
-names(p)
+names(p)[1:10]
 ```
 
 
@@ -357,7 +386,7 @@ slotNames(p)
 
 
 ```{r S4slots2}
-head(p@data)
+head(p@data)[,1:10]
 ```
 
 ```{r S4slots3}
@@ -370,8 +399,6 @@ Extractions of elements in spatial objects stored in slots are made either by ac
 p$copper
 ```
 
-
-## The new package sf
 
 # PROJECTIONS
 
@@ -393,7 +420,6 @@ coordinates(x)<-~decimalLongitude+decimalLatitude
 
 proj4string(x)
 proj4string(x)<-CRS("+proj=longlat +datum=WGS84 +ellps=WGS84")
-#proj4string(x)<-CRS("+init=epsg:4326")
 proj4string(x)
 
 ```
@@ -434,7 +460,7 @@ proj4string(x)
 
 ```
 
-All functions from package rgeos require that Spatial object are projected, other wise, function do not work or assume that calculation are done on cartesian coordinates and returns a warning message.  
+All functions from package rgeos require that Spatial object are projected, otherwise, functions do not work or assume that calculations are done on cartesian coordinates and return a warning message.  
 
 # RASTERS
 
@@ -444,9 +470,10 @@ A raster is a regular grid of pixel with values. Here is an example of building 
 ```{r buildrastersimple}
 library(raster)
 
-n<-50
-r<-raster(nrow=50,ncol=50,ext=extent(canada))
+n<-200
+r<-raster(nrow=n,ncol=n,ext=extent(canada))
 r<-setValues(r,runif(n^2))
+proj4string(r)<-proj4string(canada)
 ncell(r)
 plot(r)
 plot(canada,add=TRUE)
@@ -460,6 +487,7 @@ x<-occ_search(scientificName="Catharus bicknelli",limit=5000,hasCoordinate=TRUE,
 x<-as.data.frame(x$data)
 coordinates(x)<-~decimalLongitude+decimalLatitude
 proj4string(x)<-CRS("+init=epsg:4326")
+x<-spTransform(x,CRS(proj4string(r)))
 
 
 #x<-spTransform(x,CRS(proj4string(canada)))
@@ -472,9 +500,11 @@ proj4string(x)<-CRS("+init=epsg:4326")
 #r<-rasterize(s,r,field=1,fun="count",background=0)
 r<-rasterize(x,r,field=1,fun="count",background=0)
 
-plot(r,col=rev(heat.colors(100)))
-plot(canada,col=gray(0,0.05),border=gray(0,0.01),add=TRUE)
-points(x,col=gray(0,0.05))
+r[r==0]<-NA # everything 0 we won't plot
+
+plot(canada,col=gray(0.9),xlim=unname(bbox(x)[1,]),ylim=unname(bbox(x)[2,]))
+plot(r,col=rev(heat.colors(100)),add=TRUE)
+#points(x,col=gray(0,0.05),cex=0.2)
 
 ```
 
@@ -542,34 +572,7 @@ hist(e,xlab="Altitude",main="")
 
 ```
 
-### Reclassify
-
-```{r reclassify}
-
-mn<-c(0,100,200,400,600,800)
-mx<-c(100,200,400,600,800,1200)
-mat<-cbind(mn,mx,lab=mx)
-mat
-rc<-reclassify(r,mat)
-plot(rc,col=terrain.colors(nrow(mat)))
-
-```
-
-
-### random walk and cost
-
-```{r rw}
-
-n<-1000
-e<-extent(r)
-
-```
-
-### Countour and rasterToContours
-
-
-
-### Speeding things up with `velox`
+Speeding things up with `velox`
 
 ```{r velox}
 library(velox)
@@ -585,6 +588,102 @@ system.time(extract(r,buff,fun=mean))
 system.time(rv$extract(buff,fun=mean))
 
 ```
+
+### Reclassify
+
+```{r reclassify}
+
+mn<-c(0,100,200,400,600,800)
+mx<-c(100,200,400,600,800,1200)
+mat<-cbind(mn,mx,lab=mx)
+mat
+rc<-reclassify(r,mat)
+plot(rc,col=terrain.colors(nrow(mat)))
+
+```
+
+
+### Reclassify
+
+```{r measure_raster}
+
+library(RColorBrewer)
+library(FRutils)
+
+roads2<-spTransform(roads,CRS("+proj=utm +zone=18 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"))
+rast<-raster(ncol=200,nrow=200,ext=extent(roads2))
+rast_centroids<-xyFromCell(rast,1:ncell(rast),spatial=TRUE)
+g<-gDistance(rast_centroids,gLineMerge(roads2),byid=TRUE)
+class(g)
+dim(g)
+rast<-setValues(rast,g[1,])
+val<-pretty(seq(min(minValue(rast)),max(maxValue(rast)),length.out=100),10)
+lab<-list(at=val,labels=val)
+plot(rast,col=colo.scale(1:99,rev(brewer.pal(9,"YlOrRd"))),breaks=99,axis.args=lab)
+plot(roads2,add=TRUE)
+
+```
+
+
+## Spatial Autocorrelation
+
+```{r SA}
+
+library(spdep)
+
+#neighbours <- poly2nb(cat)
+
+
+```
+
+
+### random walk and cost
+
+```{r rw, out.width="60%"}
+
+set.seed(123)
+
+n<-1000
+e<-extent(rast)
+
+x<-c(extent(rast)[1])+cumsum(rnorm(n,0,2000)+500)
+y<-c(extent(rast)[3])+cumsum(rnorm(n,0,2000)+500)
+#plot(rast)
+
+l<-Line(cbind(x,y)) %>% 
+  list %>% 
+  Lines(ID = 1) %>% 
+  list %>% 
+  SpatialLines
+
+plot(rast,col=colo.scale(1:99,rev(brewer.pal(9,"YlOrRd"))),breaks=99,axis.args=lab)
+plot(roads2,add=TRUE)
+plot(l,add=TRUE,col="blue",lwd=2)
+
+e<-extract(rast,l)
+
+hist(e[[1]])
+
+
+```
+
+Road density
+
+```{r road_density, out.width="60%"}
+
+test<-rasterize(roads2,aggregate(rast,20),fun="length")
+plot(test)
+plot(roads2,add=TRUE)
+
+```
+
+
+
+### Countour and rasterToContours
+
+
+
+
 
 ## From shp to raster and back
 
@@ -675,16 +774,36 @@ qmap("Sherbrooke",zoom=15,maptype="satellite")
 
 ## `leaflet`
 
-```{r }
+Here present leaflet and leafletExtras
 
+```{r leaflet1, tidy=FALSE}
+
+library(leaflet)
+library(leaflet.extras)
+
+leaflet(cat) %>% 
+  addTiles() %>%
+  addCircleMarkers(data = cat, group = 'cat') %>%
+  addDrawToolbar(targetGroup = 'cat', editOptions = editToolbarOptions(selectedPathOptions = selectedPathOptions())) %>%
+  addLayersControl(overlayGroups = c('cat'),options =layersControlOptions(collapsed=FALSE)) %>%
+  addMeasurePathToolbar(options =measurePathOptions(imperial = TRUE,minPixelDistance = 100,showDistances = FALSE))
 
 
 ```
 
 ## `tmap` 
 
-```{r }
+```{r tmap, out.width="100%"}
 
+cat$attack<-as.factor(cat$Attack)
+
+library(tmap)
+tmap_mode("view")
+tm_shape(roads)+
+  tm_lines()+
+  tm_shape(cat)+
+  tm_dots("attack")+
+  tm_layout(basemaps=c("Esri.WorldImagery","Esri.WorldShadedRelief","Esri.NatGeoWorldMap"))
 
 ```
 
@@ -697,7 +816,7 @@ qmap("Sherbrooke",zoom=15,maptype="satellite")
 
 ## `mapedit`
 
-Here is a test with using mapedit functionality.
+Here is a test with using [mapedit](http://r-spatial.org/r/2017/06/09/mapedit_0-2-0.html) functionality.
 
 ```{r mapedit, eval=FALSE}
 library(mapview)
@@ -709,6 +828,9 @@ plot(x)
 x <- as(x[[1]],"Spatial")
 plot(x)
 
+#x<-editMap(leaflet() %>% addTiles())
+#plot(x[[1]])
+
 ```
 
 # MORE POSSIBILITIES
@@ -717,7 +839,45 @@ plot(x)
 
 ## Reference Site: rspatial.org
 
+A good online reference for doing spatial analyses with R is [rspatial.org](rspatial.org) which provides lots of examples on diferent types of analyses.
+
+![rspatial.org](C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/rspatial.png)
+
 ## Special packages
+
+### Landscape metrics with `spatialECO` or `SDMTools`
+
+```{r metrics1}
+
+library(spatialEco)
+
+
+r <- raster(nrows=500, ncols=500, xmn=0, xmx=100, ymn=0, 
+            ymx=100)
+
+x<-runif(100,0,100)
+y<-runif(100,0,100)
+
+h<-gBuffer(SpatialPoints(cbind(x,y)),width=5)
+
+
+r<-rasterize(h,r)
+
+plot(r,col="green4")
+
+
+x <- sampleRandom(r,1, na.rm = TRUE, sp = TRUE)
+pol<-SpatialPolygonsDataFrame(gBuffer(x,width=20),data.frame(id=1),match.ID=FALSE)
+
+a<-land.metrics(x=pol,y=r,metrics = c(2:38))
+
+plot(pol,add=TRUE)
+#plot(rasterToPolygons(r),add=TRUE)
+plot(x,add=TRUE)
+
+a
+
+```
 
 ### Spatial statistics with `spatstat`
 
