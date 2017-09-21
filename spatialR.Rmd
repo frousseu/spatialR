@@ -56,8 +56,7 @@ knitr::opts_chunk$set(cache=TRUE,comment="##",echo=TRUE,message=FALSE,warning=FA
 ```
 
 # INTRODUCTION
-
-The main book for learning to use R for spatial data is probably [Applied Spatial Data Analysis with R](http://www.asdar-book.org/) by Bivand et al. (2013)
+The R spatial environment for manipulating spatial objects is mostly made of two suites of packages, one for shapefile vector data (sp, rgdal, rgeos) and one for raster/matrix data (raster). More recently the new package sf (for simple features) has been developped to simplify and improve manipulations and operations on spatial vector data. Here, I've chosen to focus on spatial objects from the sp packahe as a lot of other package cannot deal yet with sf objects. Also, once sp objects are understood, it should be really easy to us sf objects and functions instead.
 
 # SHAPEFILES
 
@@ -835,6 +834,8 @@ plot(x)
 
 # MORE POSSIBILITIES
 
+The main book for learning to use R for spatial data is probably [Applied Spatial Data Analysis with R](http://www.asdar-book.org/) by Bivand et al. (2013)
+
 ## Spatial Task View
 
 ## Reference Site: rspatial.org
@@ -845,21 +846,21 @@ A good online reference for doing spatial analyses with R is [rspatial.org](rspa
 
 ## Special packages
 
-### Landscape metrics with `spatialECO` or `SDMTools`
+### Landscape metrics with `SDMTools` or `spatialECO`
 
 ```{r metrics1}
 
+library(SDMTools)
 library(spatialEco)
 
 
-r <- raster(nrows=500, ncols=500, xmn=0, xmx=100, ymn=0, 
+r <- raster(nrows=200, ncols=200, xmn=0, xmx=100, ymn=0, 
             ymx=100)
 
 x<-runif(100,0,100)
 y<-runif(100,0,100)
 
-h<-gBuffer(SpatialPoints(cbind(x,y)),width=5)
-
+h<-gUnaryUnion(gEnvelope(gBuffer(SpatialPoints(cbind(x,y)),width=rpois(length(x),4),byid=TRUE),byid=TRUE))
 
 r<-rasterize(h,r)
 
@@ -875,15 +876,117 @@ plot(pol,add=TRUE)
 #plot(rasterToPolygons(r),add=TRUE)
 plot(x,add=TRUE)
 
-a
+Scalebar(x=90,y=3,distance=20,unit='m',scale=1)
 
+a
 ```
 
 ### Spatial statistics with `spatstat`
 
 ### Spatial dependence with `spdep`
 
+Show an example of computing Moran's I on a SpatialPolygons of ecodistricts.
+
+
+```{r ecodistricts}
+
+
+```
+
+
 ### Kriging with `gstat`
+
+library(gstat)
+
+v <- variogram(elev~1,data=eco2,cutoff=2500000,width=10000) # calculates sample variogram values 
+plot(v)
+vfit <- fit.variogram(v, model=vgm("Sph")) # fit model
+
+plot(v,vfit)
+
+
+### kriging
+
+```{r spatialcorr}
+
+library(foreign)
+
+url<-"http://sis.agr.gc.ca/cansis/nsdb/ecostrat/district/ecodistrict_shp.zip"
+path<-getwd()
+#download.file(url,destfile=paste(path,"eco.zip",sep="/"))
+#unzip(paste(path,"eco.zip",sep="/"))
+eco<-readOGR(paste(path,"Ecodistricts",sep="/"),"ecodistricts")
+eco<-spTransform(eco,CRS("+proj=laea +lat_0=55 +lon_0=-100 +ellps=GRS80"))
+
+eco$lon<-coordinates(eco)[,1]
+eco$lat<-coordinates(eco)[,2]
+
+#url<-"http://ftp.geogratis.gc.ca/pub/nrcan_rncan/archive/vector/ecosystems/ecodistrict/ecodist.shp.zip"
+#path<-"C:/Users/rouf1703/Documents/temp"
+#path<-getwd()
+#download.file(url,destfile=paste(path,"eco2.zip",sep="/"))
+#unzip(paste(path,"eco2.zip",sep="/"))
+#eco<-readOGR(paste(path,sep="/"),"ECODIST")
+
+
+#download.file("http://sis.agr.gc.ca/cansis/nsdb/ecostrat/district/dt_temp.dbf",destfile=paste(path,"dt_temp.dbf",sep="/"))
+temp<-read.dbf(paste(path,"dt_temp.dbf",sep="/"))
+
+#download.file("http://sis.agr.gc.ca/cansis/nsdb/ecostrat/district/dt_elevation.dbf",destfile=paste(path,"dt_elevation.dbf",sep="/"))
+elev<-read.dbf(paste(path,"dt_elevation.dbf",sep="/"))
+
+eco$elev<-elev$MEAN_ELEV[match(eco$ECODISTRIC,elev$DISTRICT)]
+#eco$elev[eco$elev<(-50)]<-NA
+
+eco$temp<-temp$TMEAN_ANN[match(eco$ECODISTRIC,temp$DISTRICT)]
+eco$temp[eco$temp<(-50)]<-NA
+
+eco<-eco[!is.na(eco$elev) & !is.na(eco$temp),]
+# eco$temp<-sample(eco$temp)
+eco2<-eco[sample(1:nrow(eco),floor(nrow(eco)/5)),]
+
+library(gstat)
+
+v <- variogram(elev~1,data=eco2,cutoff=2500000,width=10000) # calculates sample variogram values 
+plot(v)
+vfit <- fit.variogram(v, model=vgm("Sph")) # fit model
+
+plot(v,vfit)
+
+### kriging
+
+r<-raster(eco,ext=extent(eco),ncol=200,nrow=200)
+
+P<-SpatialPointsDataFrame(SpatialPoints(coordinates(r),proj4string=CRS(proj4string(eco))),data.frame(id=1:ncell(r)))
+o<-as.logical(sapply(over(P,eco,returnList=TRUE),nrow))
+p<-P[o,]
+k<-krige(elev~1,eco2,p,model=vfit)
+
+P$val<-rep(NA,nrow(P))
+P$val[o]<-k@data[,1]
+
+r<-setValues(r,P$val)
+plot(P,col=colo.scale(P$val),pch=16)
+
+par(mfrow=c(1,2))
+plot(r,col=rev(colo.scale(1:100,rev(c("darkred","yellow","green","blue","violet")))))
+plot(eco,col=colo.scale(eco$elev,c("darkred","yellow","green","blue","violet")))
+
+par(mfrow=c(1,2),mar=c(0,0,0,0))
+plot(r,col=colo.scale(1:100,c("brown","orange","lightgoldenrod","green","darkgreen")),box=FALSE)
+plot(eco,col=colo.scale(eco$elev,c("brown","orange","lightgoldenrod","green","darkgreen")),border=NA)
+
+
+
+#par(mfrow=c(1,2))
+#plot(r,col=rev(colo.scale(1:100,rev(c("darkred","yellow","green","blue","violet")))))
+#plot(eco,col=colo.scale(eco$elev,c("darkred","yellow","green","blue","violet")))
+
+par(mfrow=c(1,2),mar=c(0,0,0,0))
+plot(r,col=colo.scale(1:100,c("brown","orange","lightgoldenrod","green","darkgreen")),box=FALSE)
+plot(eco,col=colo.scale(eco$elev,c("brown","orange","lightgoldenrod","green","darkgreen")),border=NA)
+
+```
 
 ### Animal movements with `adehabitat` and `trip`
 
