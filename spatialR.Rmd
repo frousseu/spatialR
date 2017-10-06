@@ -3,6 +3,10 @@ title: "Introduction to spatial tasks with R"
 author: "Francois Rousseu"
 date: '2017-07-17'
 output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
   html_document:
     depth: 4
     fig_height: 5
@@ -12,7 +16,6 @@ output:
     toc_float:
       collapsed: yes
       smooth_scroll: no
-  beamer_presentation: null
   html_notebook:
     number_sections: no
     toc: yes
@@ -21,10 +24,9 @@ output:
     smaller: yes
     transition: faster
     widescreen: yes
-  pdf_document:
-    number_sections: yes
+  beamer_presentation:
+    slide_level: 4
     toc: yes
-    toc_depth: 4
 geometry: left=2cm,right=2cm,top=3cm,bottom=2.5cm
 always_allow_html: yes
 ---
@@ -49,18 +51,21 @@ pre.r {
   }
 </style>
 
+
 ```{r options, include=TRUE, cache=FALSE, echo=FALSE, message=FALSE}
 options(width=80)
-knitr::opts_chunk$set(cache=TRUE,comment="##",echo=TRUE,message=FALSE,warning=FALSE,tidy=TRUE,size="small",fig.align="center",out.width="100%")
+knitr::opts_chunk$set(cache=TRUE,comment="##",eval=TRUE,error=TRUE,echo=TRUE,message=FALSE,warning=FALSE,tidy=TRUE,size="small",fig.align="center",out.width="100%")
 
 ```
 
 # INTRODUCTION
-The R spatial environment for manipulating spatial objects is mostly made of two suites of packages, one for shapefile vector data (sp, rgdal, rgeos) and one for raster/matrix data (raster). More recently the new package sf (for simple features) has been developped to simplify and improve manipulations and operations on spatial vector data. Here, I've chosen to focus on spatial objects from the sp packahe as a lot of other package cannot deal yet with sf objects. Also, once sp objects are understood, it should be really easy to us sf objects and functions instead.
+The R spatial environment for manipulating spatial objects is mostly made of two suites of packages, one for shapefile or vector data (sp, rgdal, rgeos) and one for raster/matrix data (raster). Vector data is mostly correspond to coordinates that make either points, lines or polygons, while raster data mostly correpsonds to regularly gridded data.
+
+More recently the new package sf (simple features) has been developped to simplify and improve manipulations and operations on spatial vector data. Here, I've chosen to focus on spatial objects from the sp package as a lot of other package cannot deal with sf objects yet. Also, once sp objects are understood, it is really straigthforward to move to sf objects and functions instead.
 
 # SHAPEFILES
 
-The main packages directly used for working with shapefiles and doing spatial operations are sp, rgdal and rgeos.
+The main packages used for handling shapefiles and doing spatial operations are listed below.
 <br>
 
 | Package | Use |
@@ -68,9 +73,9 @@ The main packages directly used for working with shapefiles and doing spatial op
 | **sp** | Defines S4 spatial classes and methods for manipulating spatial objects |
 | **rgdal** | Provides bindings with the GDAL and PROJ.4 libraries for reading, projections, coordinate transformations, etc. |
 | **rgeos** | Provides bindings for the GEOS library for spatial operations (intersections, buffers, etc.) | 
-| **maptools** |  | 
-| **sf** | New S3 spatial classes and methods for manipulating spatial objects as simple features |
-| **spdep** | Tools for studying spatial dependence |
+| **maptools** | Tools for reading and handling spatial objects | 
+| **sf** | New simpler S3 spatial classes and methods for manipulating spatial objects as simple features |
+
 
 <br>
 
@@ -114,7 +119,7 @@ writeOGR(roads,dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc
 
 ### From a `data.frame`
 
-Let's load some data that contains locations of Jaguars attacks in the kalakmul reserve in Mexico. Interviews were done with farmers about whether attacks from jaguars (or cougars) happened with their cattle. 
+Let's load some data that contains locations of Jaguars attacks in the Kalakmul reserve in Mexico. Interviews were done with farmers about whether attacks from jaguars (or cougars) happened with their cattle. 
 
 ```{r shpdf1}
 
@@ -143,6 +148,8 @@ plot(cat,col=alpha(ifelse(cat$Attack==0,"blue","red"),0.4),pch=16,cex=1.5,axes=T
 
 ### From scratch
 
+Shapefiles can also be built from scratch and turned to a spatial object with the `SpatialPointsDataFrame` function.
+
 ```{r shpscratch, out.width="50%"}
 
 set.seed(123)
@@ -156,7 +163,7 @@ plot(x,axes=TRUE)
 
 ```
 
-To close a polygon, the last point of the matrix needs to be the first point that starts the polygon.
+Creating a shapefile of polygons is slightly more complex and requires a couple more steps. We can use pipes for the **magrittr** package to make this easier. To close a polygon, the last point of the matrix needs to be the first point that starts the polygon.
 ```{r xscratchpol, out.width="50%"}
 
 library(magrittr)
@@ -177,21 +184,30 @@ plot(z,axes=TRUE)
 
 ## Accessing data with S4 class
 
+Spatial objects from the sp package are made with S4 classes. S4 classes are formal classes that can be tricky and hard to understand. Here, I won't go into the details of how S4 classes work, but I will describe the structure of spatial objects.
+
 ### The `Spatial` class with `sp`
 
-```{r class}
-
+```{r class, eval=FALSE}
+library(sp)
 getClass("Spatial")
+names(x)
+summary(x)
+slotNames(x)
+x@data
+x@coords
 
 ```
 
+The function names and the `$` applied on a spatial object behave the same way as on a data.frame, while the `@` operator allows to extract objects stored in the slots of the object. Different methods are also available to extract different information fro spatial objects such bounding boxes (bbox), centroid coordinates (coordinates), etc. Type ?Spatial to learn more about them.
+
 ## Spatial operations
 
-Most spatial operations are done using the package `rgeos`. One of the requirement of the functions is that objects should be projected. When objects are really large, some operation may start to take a long time (e.g. intersections).
+Most spatial operations are done using the package `rgeos`. One of the requirement of functions in rgeos is that objects should be projected. When objects are really large, some operation may start to take a long time (e.g. intersections with gIntersection).
 
 ### Cut or delimit things
 
-Here are some common operations that can be done on points (but also lines or polygons.
+Here are some common operations that can be done on points (but also lines or polygons).
 
 ```{r points_op, fig.width=7,fig.height=4,out.width="100%"}
 library(rgeos)
@@ -542,7 +558,7 @@ plot(r)
 
 ```
 
-## Stacks and Bricks
+## Layers, Stacks and Bricks
 
 ```{r stack}
 
@@ -836,13 +852,21 @@ plot(x)
 
 The main book for learning to use R for spatial data is probably [Applied Spatial Data Analysis with R](http://www.asdar-book.org/) by Bivand et al. (2013)
 
+| Package | Use |
+| :-------------:|:----------------------------------------|
+| **spatstat** |  |
+| **adehabitat** |  |
+| **gstat** |  | 
+| **SDMTools** |  | 
+| **spdep** |  |
+
 ## Spatial Task View
 
 ## Reference Site: rspatial.org
 
 A good online reference for doing spatial analyses with R is [rspatial.org](rspatial.org) which provides lots of examples on diferent types of analyses.
 
-![rspatial.org](C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/rspatial.png)
+<!--![rspatial.org](C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/rspatial.png)--> 
 
 ## Special packages
 
@@ -1012,3 +1036,35 @@ plot(eco,col=colo.scale(eco$elev,c("brown","orange","lightgoldenrod","green","da
 
 ### From `sp` to `sf` and back
 
+### EXERCICES
+
+Load data with coordinates and measure distance between each locations.
+
+```{r exercices1shp}
+
+
+
+```
+
+Generate a random set of points and store the density of points in a raster stack. Do something with NDVI data perhaps. Or download WorldClim data using getData function from raster and then compute mean annual temperature in Quebec using a region or a specific shapefile. Mean temperature and altitude in the Bicknell range?
+
+```{r exercices2raster}
+
+r<-raster::getData('worldclim',var='bio',res=0.5,lon=-70,lat=45)
+plot(r)
+e<-extent(c(-74,-71,45,47))
+r2<-crop(r,e)
+plot(r2[[1]]/10)
+
+
+```
+
+# EXERCICE 1
+
+Generate random home=ranges in a region and measure percent overlap between them.
+
+```{r exercices3hr}
+
+
+
+```
