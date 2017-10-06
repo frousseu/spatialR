@@ -1046,7 +1046,7 @@ Load data with coordinates and measure distance between each locations.
 
 ```
 
-Generate a random set of points and store the density of points in a raster stack. Do something with NDVI data perhaps. Or download WorldClim data using getData function from raster and then compute mean annual temperature in Quebec using a region or a specific shapefile. Mean temperature and altitude in the Bicknell range?
+Generate a random set of points and store the density of points in a raster stack. Do something with NDVI data perhaps. Or download WorldClim data using getData function from raster and then compute mean annual temperature in Quebec using a region or a specific shapefile. Mean temperature and altit ude in the Bicknell range?
 
 ```{r exercices2raster}
 
