@@ -1,21 +1,21 @@
 ---
 title: "Introduction to spatial tasks with R"
-author: "Francois Rousseu"
-date: '2017-07-17'
 output:
-  pdf_document:
-    number_sections: yes
-    toc: yes
-    toc_depth: 4
   html_document:
     depth: 4
     fig_height: 5
     fig_width: 6
-    number_sections: yes
+    number_sections: no
     toc: yes
     toc_float:
       collapsed: yes
       smooth_scroll: no
+  beamer_presentation:
+    colortheme: lily
+    fonttheme: structurebold
+    slide_level: 2
+    theme: Singapore
+    toc: yes
   html_notebook:
     number_sections: no
     toc: yes
@@ -24,9 +24,10 @@ output:
     smaller: yes
     transition: faster
     widescreen: yes
-  beamer_presentation:
-    slide_level: 4
+  pdf_document:
+    number_sections: yes
     toc: yes
+    toc_depth: 4
 geometry: left=2cm,right=2cm,top=3cm,bottom=2.5cm
 always_allow_html: yes
 ---
@@ -39,34 +40,53 @@ always_allow_html: yes
 </script>
 
 <style>
+
 pre.r {
     background-color: #EEEEEE!important;
     border-color: #EEEEEE!important;
+    font-size: 16pt;
 }
+
+pre code {
+  font-size: 16pt;
+}
+
+body {
+  font-size: 16pt;
+}
+
+.main-container {
+    max-width: 1500px !important;
+}
+
+#TOC {
+  font-size: 11pt;
+  border-color: white;
+}
+  
 </style>
 
-<style>
-  .main-container {
-    max-width: 1300px !important;
-  }
-</style>
 
-
-```{r options, include=TRUE, cache=FALSE, echo=FALSE, message=FALSE}
-options(width=80)
-knitr::opts_chunk$set(cache=TRUE,comment="##",eval=TRUE,error=TRUE,echo=TRUE,message=FALSE,warning=FALSE,tidy=TRUE,size="small",fig.align="center",out.width="100%")
+```{r options, include=TRUE, cache=FALSE, echo=FALSE, message=FALSE, eval=TRUE}
+options(width=10)
+knitr::opts_chunk$set(cache=TRUE,comment="##",eval=TRUE,error=TRUE,echo=TRUE,message=FALSE,warning=FALSE,tidy=FALSE,size="LARGE",fig.align="center",out.width="100%")
 
 ```
 
+<br><br><br><br>
+
 # INTRODUCTION
+
 The R spatial environment for manipulating spatial objects is mostly made of two suites of packages, one for shapefile or vector data (sp, rgdal, rgeos) and one for raster/matrix data (raster). Vector data is mostly correspond to coordinates that make either points, lines or polygons, while raster data mostly correpsonds to regularly gridded data.
 
 More recently the new package sf (simple features) has been developped to simplify and improve manipulations and operations on spatial vector data. Here, I've chosen to focus on spatial objects from the sp package as a lot of other package cannot deal with sf objects yet. Also, once sp objects are understood, it is really straigthforward to move to sf objects and functions instead.
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 # SHAPEFILES
 
 The main packages used for handling shapefiles and doing spatial operations are listed below.
-<br>
+<!-- <br> -->
 
 | Package | Use |
 | :-------------:|:----------------------------------------|
@@ -76,27 +96,31 @@ The main packages used for handling shapefiles and doing spatial operations are 
 | **maptools** | Tools for reading and handling spatial objects | 
 | **sf** | New simpler S3 spatial classes and methods for manipulating spatial objects as simple features |
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-<br>
 
 ## Reading and writing
 
 ### Reading
 
+
 Reading shapefiles is done with the function `readOGR` from the `rgdal` package.
 
-```{r read}
+
+```{r read, size="tiny"}
 
 library(sp)
 library(rgdal)
 #roads<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="roads",verbose=FALSE,encoding="UTF-8")
-roads<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="carreteras",verbose=FALSE,encoding="UTF-8")
+roads<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/
+  M-LLecuyer/Doc",layer="carreteras",verbose=FALSE,encoding="UTF-8")
 #pop<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="pop",verbose=FALSE,encoding="UTF-8")
 
 class(roads)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ```{r read2, out.width="70%"}
 
@@ -106,20 +130,25 @@ plot(roads,col=gray(0.75),lwd=4, axes=TRUE)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### Writing
 
-```{r write, eval=FALSE}
+
+```{r write, eval=FALSE, tidy=TRUE}
 
 writeOGR(roads,dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="cat",driver="ESRI Shapefile")
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## Building shapefiles
 
 ### From a `data.frame`
 
 Let's load some data that contains locations of Jaguars attacks in the Kalakmul reserve in Mexico. Interviews were done with farmers about whether attacks from jaguars (or cougars) happened with their cattle. 
+
 
 ```{r shpdf1}
 
@@ -128,7 +157,11 @@ head(cat)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 This is a simple data.frame with X and Y columns representing longitudes and latitudes. To transform this data.frame to a spatial object, we just have to do this:
+
+
 ```{r shpdf2}
 
 library(sp)
@@ -136,6 +169,9 @@ coordinates(cat)<-~X+Y
 class(cat)
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 
 The object returned is now a `SpatialPointsDataFrame`. This object can be simply plotted with the function plot which has a method for Spatial objects.
 
@@ -145,6 +181,7 @@ plot(cat,col=alpha(ifelse(cat$Attack==0,"blue","red"),0.4),pch=16,cex=1.5,axes=T
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### From scratch
 
@@ -163,28 +200,31 @@ plot(x,axes=TRUE)
 
 ```
 
-Creating a shapefile of polygons is slightly more complex and requires a couple more steps. We can use pipes for the **magrittr** package to make this easier. To close a polygon, the last point of the matrix needs to be the first point that starts the polygon.
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+<!--# SHAPEFILES-->
+
+<!--Creating a shapefile of polygons is slightly more complex and requires a couple more steps. We can use pipes for the **magrittr** package to make this easier. To close a polygon, the last point of the matrix needs to be the first point that starts the polygon.-->
+
 ```{r xscratchpol, out.width="50%"}
 
 library(magrittr)
-
 m<-rbind(c(1,1),c(1,2),c(2,2),c(3,2),c(2,1))
-
 z<-rbind(m, m[1, ]) %>% 
   Polygon %>% 
   list %>% 
   Polygons(ID = 1) %>% 
   list %>% 
   SpatialPolygons
-
 plot(z,axes=TRUE)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## Accessing data with S4 class
 
-Spatial objects from the sp package are made with S4 classes. S4 classes are formal classes that can be tricky and hard to understand. Here, I won't go into the details of how S4 classes work, but I will describe the structure of spatial objects.
+<!-- Spatial objects from the sp package are made with S4 classes. S4 classes are formal classes that can be tricky and hard to understand. Here, I won't go into the details of how S4 classes work, but I will describe the structure of spatial objects. -->
 
 ### The `Spatial` class with `sp`
 
@@ -199,11 +239,17 @@ x@coords
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 The function names and the `$` applied on a spatial object behave the same way as on a data.frame, while the `@` operator allows to extract objects stored in the slots of the object. Different methods are also available to extract different information fro spatial objects such bounding boxes (bbox), centroid coordinates (coordinates), etc. Type ?Spatial to learn more about them.
 
 ## Spatial operations
 
 Most spatial operations are done using the package `rgeos`. One of the requirement of functions in rgeos is that objects should be projected. When objects are really large, some operation may start to take a long time (e.g. intersections with gIntersection).
+
+**rgeos** requires object to be projected!
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### Cut or delimit things
 
@@ -220,6 +266,9 @@ for(i in seq_along(op)){
 }
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 
 Here are some common operations that are done on polygons.
 
@@ -238,6 +287,7 @@ for(i in seq_along(op)){
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### Measure things
 
@@ -250,6 +300,7 @@ text(x,round(gDistance(x,cx,byid=TRUE),2),adj=c(0,1.3),cex=0.8)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ```{r measure_area, fig.width=7,fig.height=5,out.width="70%"}
 
@@ -259,6 +310,8 @@ plot(ch,axes=TRUE)
 polygonsLabel(ch,labels=round(area,2),cex=0.4,gridpoints=1000)
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### Sample things
 
@@ -279,6 +332,8 @@ for(i in seq_along(type)){
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 Random points can also be distributed within random polygons
 ```{r sample2, fig.width=7,fig.height=5,out.width="70%"}
 
@@ -295,6 +350,8 @@ s2<-do.call("rbind",s2)
 plot(s2,add=TRUE)
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### Overlay things
 
@@ -313,6 +370,8 @@ plot(s,add=TRUE)
 plot(buffs,add=TRUE,border=NA,col=gray(0,0.1))
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 Let's determine which buffer touch any road.
 
 ```{r over2, fig.width=8,fig.height=7,out.width="60%",echo=-(1:10)}
@@ -321,6 +380,8 @@ o<-over(buffs,roads)
 plot(buffs[apply(o,1,function(i){!all(is.na(i))}),],col=alpha("darkgreen",0.3),border=NA,lwd=2,add=TRUE)
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 Extract sections of road that intersect with a buffer.
 
 ```{r over3, fig.width=8,fig.height=7,out.width="60%",echo=-(1:12)}
@@ -328,6 +389,8 @@ Extract sections of road that intersect with a buffer.
 int<-gIntersection(buffs,roads,byid=TRUE)
 plot(int,col="red",lwd=4,add=TRUE)
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 Finally, calculate the total lengths of roads inside every buffer.
 
@@ -339,6 +402,8 @@ dist<-sapply(o,function(i){
 })
 shadowtext(coordinates(buffs),labels=round(dist/1000,1),col="black",bg="white",adj=c(-1,-2))
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### Simplify things
 
@@ -353,6 +418,8 @@ plot(gSimplify(poly,tol=0.6,topologyPreserve=TRUE),border="red",add=TRUE)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ```{r temp, out.width="50%"}
 
 library(rgbif)
@@ -365,6 +432,8 @@ class(p)
 plot(p,axes=TRUE)
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 #### spsample, elide, mst
 
@@ -379,12 +448,16 @@ plot(ch,border="red",col="blue",lwd=10)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ### spplot
 
 ```{r spplot, out.width="80%"}
 
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## S4 objects
 
@@ -408,12 +481,16 @@ head(p@data)[,1:10]
 p@bbox
 ```
 
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 Extractions of elements in spatial objects stored in slots are made either by accessing them using slots (with `@` instead of `$` which access columns in the `data.frame` attribute table stored in `@data`) or more easily with extractor function such as `bbox`, `proj4string` or `coordinates`.
 
 ```{r S4slots4}
 p$copper
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 # PROJECTIONS
 
@@ -429,6 +506,9 @@ coordinates(x)<-~decimalLongitude+decimalLatitude
 
 ```
 
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ## Assign a projection
 
 ```{r proj_assign}
@@ -438,6 +518,8 @@ proj4string(x)<-CRS("+proj=longlat +datum=WGS84 +ellps=WGS84")
 proj4string(x)
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## Change a projection
 
@@ -464,6 +546,9 @@ for(i in 1:length(crs)){
 
 ```
 
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ## Projections and EPSG
 
 Projections can also be given with their epsg number. More info on projections can be found here [epsg.io](http://epsg.io/) where a list of the different epsg is available
@@ -476,6 +561,8 @@ proj4string(x)
 ```
 
 All functions from package rgeos require that Spatial object are projected, otherwise, functions do not work or assume that calculations are done on cartesian coordinates and return a warning message.  
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 # RASTERS
 
@@ -494,6 +581,8 @@ plot(r)
 plot(canada,add=TRUE)
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 Here is an example of building a raster where each pixel value is determined by the number of points in each cell.
 ```{r buildrastercomplex}
@@ -523,7 +612,11 @@ plot(r,col=rev(heat.colors(100)),add=TRUE)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ## Raster formats
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## Read, write, merge, crop
 
@@ -539,6 +632,7 @@ r1
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ```{r merge}
 
@@ -549,6 +643,7 @@ plot(r)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ```{r crop}
 
@@ -558,6 +653,8 @@ plot(r)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ## Layers, Stacks and Bricks
 
 ```{r stack}
@@ -566,6 +663,7 @@ plot(r)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## Raster operations
 
@@ -578,6 +676,8 @@ r
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ### Extract
 
 ```{r extract}
@@ -586,6 +686,8 @@ e<-extract(r,x)
 hist(e,xlab="Altitude",main="")
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 Speeding things up with `velox`
 
@@ -604,6 +706,8 @@ system.time(rv$extract(buff,fun=mean))
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ### Reclassify
 
 ```{r reclassify}
@@ -617,6 +721,7 @@ plot(rc,col=terrain.colors(nrow(mat)))
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### Reclassify
 
@@ -639,6 +744,7 @@ plot(roads2,add=TRUE)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## Spatial Autocorrelation
 
@@ -651,6 +757,7 @@ library(spdep)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### random walk and cost
 
@@ -682,6 +789,8 @@ hist(e[[1]])
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 Road density
 
 ```{r road_density, out.width="60%"}
@@ -692,13 +801,13 @@ plot(roads2,add=TRUE)
 
 ```
 
-
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### Countour and rasterToContours
 
 
 
-
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## From shp to raster and back
 
@@ -712,7 +821,11 @@ plot(pr)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ### Polygonizing a raster
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## Plotting with `rasterVis`
 
@@ -746,6 +859,8 @@ plot(pr)
 
 ## chloropleth mapping
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 # INTERACTIVE MAPPING
 
 select, drawPoly from package raster to interactively select elements
@@ -758,6 +873,8 @@ plot(x)
 
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## `OpenStreetMap`
 
@@ -775,6 +892,8 @@ plot(p,add=TRUE)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ## `ggmap`
 
 ```{r }
@@ -786,6 +905,8 @@ plot(test)
 qmap("Sherbrooke",zoom=15,maptype="satellite")
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## `leaflet`
 
@@ -806,6 +927,8 @@ leaflet(cat) %>%
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ## `tmap` 
 
 ```{r tmap, out.width="100%"}
@@ -822,12 +945,16 @@ tm_shape(roads)+
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ## `mapview`
 
 ```{r }
 
 
 ```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## `mapedit`
 
@@ -848,6 +975,8 @@ plot(x)
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 # MORE POSSIBILITIES
 
 The main book for learning to use R for spatial data is probably [Applied Spatial Data Analysis with R](http://www.asdar-book.org/) by Bivand et al. (2013)
@@ -860,13 +989,19 @@ The main book for learning to use R for spatial data is probably [Applied Spatia
 | **SDMTools** |  | 
 | **spdep** |  |
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ## Spatial Task View
 
 ## Reference Site: rspatial.org
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 A good online reference for doing spatial analyses with R is [rspatial.org](rspatial.org) which provides lots of examples on diferent types of analyses.
 
 <!--![rspatial.org](C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/rspatial.png)--> 
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## Special packages
 
@@ -905,7 +1040,11 @@ Scalebar(x=90,y=3,distance=20,unit='m',scale=1)
 a
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ### Spatial statistics with `spatstat`
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### Spatial dependence with `spdep`
 
@@ -917,6 +1056,7 @@ Show an example of computing Moran's I on a SpatialPolygons of ecodistricts.
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### Kriging with `gstat`
 
@@ -928,6 +1068,7 @@ vfit <- fit.variogram(v, model=vgm("Sph")) # fit model
 
 plot(v,vfit)
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### kriging
 
@@ -1012,6 +1153,8 @@ plot(eco,col=colo.scale(eco$elev,c("brown","orange","lightgoldenrod","green","da
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ### Animal movements with `adehabitat` and `trip`
 
 ### Kernel smoothing with `ks`
@@ -1036,9 +1179,17 @@ plot(eco,col=colo.scale(eco$elev,c("brown","orange","lightgoldenrod","green","da
 
 ### From `sp` to `sf` and back
 
-### EXERCICES
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+# EXERCICES
+
+## EXERCICE 1
 
 Load data with coordinates and measure distance between each locations.
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+### SOLUTION
 
 ```{r exercices1shp}
 
@@ -1046,12 +1197,24 @@ Load data with coordinates and measure distance between each locations.
 
 ```
 
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+## EXERCICE 2
+
 Generate a random set of points and store the density of points in a raster stack. Do something with NDVI data perhaps. Or download WorldClim data using getData function from raster and then compute mean annual temperature in Quebec using a region or a specific shapefile. Mean temperature and altit ude in the Bicknell range?
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+### SOLUTION
 
 ```{r exercices2raster}
 
-r<-raster::getData('worldclim',var='bio',res=0.5,lon=-70,lat=45)
-plot(r)
+r<-raster::getData('worldclim',var='bio',res=2.5,lon=-70,lat=65)[[1]]
+#bio2<-raster::getData('worldclim',var='bio',res=2.5,lon=-90,lat=65)[[1]]
+#bio3<-raster::getData('worldclim',var='bio',res=2.5,lon=-110,lat=65)[[1]]
+#alt<-raster::getData('alt',country='CAN')
+#can<-getData('GADM', country='CAN', level=2)
+#plot(r)
 e<-extent(c(-74,-71,45,47))
 r2<-crop(r,e)
 plot(r2[[1]]/10)
@@ -1059,9 +1222,15 @@ plot(r2[[1]]/10)
 
 ```
 
-# EXERCICE 1
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+## EXERCICE 3
 
 Generate random home=ranges in a region and measure percent overlap between them.
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+### SOLUTION 
 
 ```{r exercices3hr}
 
