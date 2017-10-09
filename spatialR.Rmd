@@ -1,5 +1,5 @@
 ---
-title: "Introduction to spatial tasks with R"
+title: "INTRODUCTION TO SPATIAL TASKS WITH R"
 output:
   html_document:
     depth: 4
@@ -44,15 +44,15 @@ always_allow_html: yes
 pre.r {
     background-color: #EEEEEE!important;
     border-color: #EEEEEE!important;
-    font-size: 16pt;
+    font-size: 12pt;
 }
 
 pre code {
-  font-size: 16pt;
+  font-size: 12pt;
 }
 
 body {
-  font-size: 16pt;
+  font-size: 12pt;
 }
 
 .main-container {
@@ -63,17 +63,80 @@ body {
   font-size: 11pt;
   border-color: white;
 }
-  
+
+.list-group-item.active:focus{
+    z-index: 2;
+    color: #fff;
+    background-color: DarkGreen;
+    border-color: DarkGreen;
+    font-weight: bold;
+    font-color: Darkgreen;
+}
+
+.list-group-item.active:hover {
+    z-index: 2;
+    color: #fff;
+    background-color: DarkGreen;
+    border-color: DarkGreen;
+    font-weight: bold;
+    font-color: Darkgreen;
+}
+
+.list-group-item.active{
+    z-index: 2;
+    color: #fff;
+    background-color: DarkGreen;
+    border-color: DarkGreen;
+    font-weight: bold;
+    font-color: Darkgreen;
+}
+
+h1.title {
+  margin-top: 150px;
+  font-size: 42px;
+  color: DarkGreen;
+  font-weight: bold;
+}
+h1 {
+  padding-top: 150px;
+  font-size: 42px;
+  color: DarkGreen;
+  font-weight: bold;
+}
+h2 {
+  padding-top: 150px;
+  font-size: 36px;
+  color: DarkGreen;
+  font-weight: bold;
+}
+
+h3 {
+  padding-top: 50px;
+  font-size: 32px;
+  color: DarkGreen;
+  font-weight: bold;
+}
+h4 {
+  font-size: 28px;
+  color: DarkGreen;
+  font-weight: bold;
+}
+h5 {
+  font-size: 26px;
+  color: DarkGreen;
+  font-weight: bold;
+}
+
 </style>
 
 
 ```{r options, include=TRUE, cache=FALSE, echo=FALSE, message=FALSE, eval=TRUE}
-options(width=10)
+options(width=70)
 knitr::opts_chunk$set(cache=TRUE,comment="##",eval=TRUE,error=TRUE,echo=TRUE,message=FALSE,warning=FALSE,tidy=FALSE,size="LARGE",fig.align="center",out.width="100%")
 
 ```
 
-<br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 # INTRODUCTION
 
@@ -86,7 +149,6 @@ More recently the new package sf (simple features) has been developped to simpli
 # SHAPEFILES
 
 The main packages used for handling shapefiles and doing spatial operations are listed below.
-<!-- <br> -->
 
 | Package | Use |
 | :-------------:|:----------------------------------------|
@@ -112,8 +174,7 @@ Reading shapefiles is done with the function `readOGR` from the `rgdal` package.
 library(sp)
 library(rgdal)
 #roads<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="roads",verbose=FALSE,encoding="UTF-8")
-roads<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/
-  M-LLecuyer/Doc",layer="carreteras",verbose=FALSE,encoding="UTF-8")
+roads<-readOGR(dsn="C:/Users/God/Documents/ML",layer="carreteras",verbose=FALSE,encoding="UTF-8")
 #pop<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc",layer="pop",verbose=FALSE,encoding="UTF-8")
 
 class(roads)
@@ -152,8 +213,9 @@ Let's load some data that contains locations of Jaguars attacks in the Kalakmul 
 
 ```{r shpdf1}
 
-cat<-read.table("C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc/cat.txt",header=TRUE,stringsAsFactors=FALSE)
-head(cat)
+#cat<-read.table("C:/Users/rouf1703/Documents/UdeS/Consultation/M-LLecuyer/Doc/cat.txt",header=TRUE,stringsAsFactors=FALSE)
+cat<-read.csv("C:/Users/God/Documents/ML/LandEcoCorrected_addedvalue.csv",header=TRUE,stringsAsFactors=FALSE,sep=";",dec=",")
+str(cat)
 
 ```
 
@@ -228,7 +290,7 @@ plot(z,axes=TRUE)
 
 ### The `Spatial` class with `sp`
 
-```{r class, eval=FALSE}
+```{r class, eval=TRUE}
 library(sp)
 getClass("Spatial")
 names(x)
@@ -242,6 +304,8 @@ x@coords
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 The function names and the `$` applied on a spatial object behave the same way as on a data.frame, while the `@` operator allows to extract objects stored in the slots of the object. Different methods are also available to extract different information fro spatial objects such bounding boxes (bbox), centroid coordinates (coordinates), etc. Type ?Spatial to learn more about them.
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## Spatial operations
 
@@ -525,7 +589,8 @@ proj4string(x)
 
 ```{r proj_change, fig.width=10, fig.height=6}
 
-canada<-readOGR("C:/Users/rouf1703/Documents/UdeS/Formation/Canada",layer="Canada")
+#canada<-readOGR("C:/Users/rouf1703/Documents/UdeS/Formation/Canada",layer="Canada")
+canada<-getData('GADM', country='CAN', level=1)
 proj4string(canada)
 
 crs<-c("+proj=longlat +datum=WGS84 +ellps=WGS84",
@@ -563,6 +628,23 @@ proj4string(x)
 All functions from package rgeos require that Spatial object are projected, otherwise, functions do not work or assume that calculations are done on cartesian coordinates and return a warning message.  
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+# EXERCICE 1
+
+Load data with coordinates and measure distance between each locations.
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+## SOLUTION
+
+```{r exercices1shp}
+
+
+
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 
 # RASTERS
 
@@ -622,8 +704,12 @@ plot(r,col=rev(heat.colors(100)),add=TRUE)
 
 ```{r read_rast}
 
-r1<-raster("C:/Users/rouf1703/Documents/UdeS/Formation/cdem_dem_021E_tif/cdem_dem_021E.tif")
-r2<-raster("C:/Users/rouf1703/Documents/UdeS/Formation/cdem_dem_031H_tif/cdem_dem_031H.tif")
+#r1<-raster("C:/Users/rouf1703/Documents/UdeS/Formation/cdem_dem_021E_tif/cdem_dem_021E.tif")
+#r2<-raster("C:/Users/rouf1703/Documents/UdeS/Formation/cdem_dem_031H_tif/cdem_dem_031H.tif")
+
+r1<-raster::getData('alt',country='CAN')
+r2<-raster::getData('alt',country='USA')[[1]]
+
 par(mfrow=1:2)
 plot(r1)
 plot(r2)
@@ -636,10 +722,11 @@ r1
 
 ```{r merge}
 
-r1<-aggregate(r1,10)
-r2<-aggregate(r2,10)
+#r1<-aggregate(r1,10)
+#r2<-aggregate(r2,10)
 r<-merge(r1,r2)
-plot(r)
+rr<-aggregate(r,10)
+plot(rr)
 
 ```
 
@@ -659,9 +746,22 @@ plot(r)
 
 ```{r stack}
 
+r1<-raster::getData('worldclim',var='tmean',res=0.5,lon=-71,lat=45)
+r2<-raster::getData('worldclim',var='tmin',res=0.5,lon=-71,lat=45)
+r3<-raster::getData('worldclim',var='tmax',res=0.5,lon=-71,lat=45)
+
+r<-stack(r1,r2,r3)
 
 
 ```
+
+
+```{r brick}
+
+r<-brick(r1)
+
+```
+
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
@@ -829,6 +929,31 @@ plot(pr)
 
 ## Plotting with `rasterVis`
 
+
+# EXERCICE 2
+
+Generate a random set of points and store the density of points in a raster stack. Do something with NDVI data perhaps. Or download WorldClim data using getData function from raster and then compute mean annual temperature in Quebec using a region or a specific shapefile. Mean temperature and altit ude in the Bicknell range?
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+## SOLUTION
+
+```{r exercices2raster}
+
+r<-raster::getData('worldclim',var='bio',res=2.5,lon=-70,lat=65)[[1]]
+#bio2<-raster::getData('worldclim',var='bio',res=2.5,lon=-90,lat=65)[[1]]
+#bio3<-raster::getData('worldclim',var='bio',res=2.5,lon=-110,lat=65)[[1]]
+#alt<-raster::getData('alt',country='CAN')
+#can<-getData('GADM', country='CAN', level=2)
+#plot(r)
+e<-extent(c(-74,-71,45,47))
+r2<-crop(r,e)
+plot(r2[[1]]/10)
+
+
+```
+
+
 ## `SpatialGrids` and `SpatialPixels`
 
 ## Grids
@@ -972,6 +1097,22 @@ plot(x)
 
 #x<-editMap(leaflet() %>% addTiles())
 #plot(x[[1]])
+
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+# EXERCICE 3 
+
+Generate random home=ranges in a region and measure percent overlap between them.
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+## SOLUTION 
+
+```{r exercices3hr}
+
+
 
 ```
 
@@ -1179,61 +1320,8 @@ plot(eco,col=colo.scale(eco$elev,c("brown","orange","lightgoldenrod","green","da
 
 ### From `sp` to `sf` and back
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-# EXERCICES
-
-## EXERCICE 1
-
-Load data with coordinates and measure distance between each locations.
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-### SOLUTION
-
-```{r exercices1shp}
 
 
 
-```
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-## EXERCICE 2
-
-Generate a random set of points and store the density of points in a raster stack. Do something with NDVI data perhaps. Or download WorldClim data using getData function from raster and then compute mean annual temperature in Quebec using a region or a specific shapefile. Mean temperature and altit ude in the Bicknell range?
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-### SOLUTION
-
-```{r exercices2raster}
-
-r<-raster::getData('worldclim',var='bio',res=2.5,lon=-70,lat=65)[[1]]
-#bio2<-raster::getData('worldclim',var='bio',res=2.5,lon=-90,lat=65)[[1]]
-#bio3<-raster::getData('worldclim',var='bio',res=2.5,lon=-110,lat=65)[[1]]
-#alt<-raster::getData('alt',country='CAN')
-#can<-getData('GADM', country='CAN', level=2)
-#plot(r)
-e<-extent(c(-74,-71,45,47))
-r2<-crop(r,e)
-plot(r2[[1]]/10)
 
 
-```
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-## EXERCICE 3
-
-Generate random home=ranges in a region and measure percent overlap between them.
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-### SOLUTION 
-
-```{r exercices3hr}
-
-
-
-```
