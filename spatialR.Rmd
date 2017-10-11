@@ -142,9 +142,9 @@ knitr::opts_chunk$set(cache=TRUE,comment="##",eval=TRUE,error=TRUE,echo=TRUE,mes
 
 # INTRODUCTION
 
-The R spatial environment for manipulating spatial objects is mostly made of two suites of packages, one for vector data (or shapefiles) (**sp**, **rgdal**, **rgeos**) and one for raster/matrix data (**raster**). Vector data corresponds to coordinates that make either points, lines or polygons, while raster data mostly correpsonds to regularly gridded data.
+The R spatial environment for manipulating spatial objects is mostly made of two suites of packages, one for vector data (or shapefiles) (**sp**, **rgdal**, **rgeos**) and one for raster data (**raster**). Vector data correspond to coordinates that make either points, lines or polygons, while raster data mostly correspond to regularly gridded data.
 
-More recently the new package sf (simple features) has been developped to simplify and improve manipulations and operations on spatial vector data. Here, I've chosen to focus on spatial objects from the sp package as a lot of other packages cannot deal with sf objects yet. Also, once sp objects are understood, it is really straigthforward to move to using sf instead.
+More recently, the new package **sf** (for simple features) has been developped to simplify and improve manipulations and operations on spatial vector data. Here, I've chosen to focus on spatial objects from the sp package as a lot of other packages cannot deal with sf objects yet. Also, once sp objects are understood, it is really straigthforward to move to using sf instead.
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
@@ -167,24 +167,31 @@ The main packages used for handling shapefiles and doing spatial operations are 
 
 ### Reading
 
+First, let's look in the folder where the shapefile is located.
 
-Reading shapefiles is done with the function `readOGR` from the `rgdal` package.
+```{r read1, size="tiny"}
 
+list.files("C:/Users/God/Documents/ML")
 
-```{r read, size="tiny"}
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+Reading shapefiles is done with the function `readOGR` from the `rgdal` package. 
+
+```{r read2, size="tiny"}
 
 library(sp)
 library(rgdal)
-roads<-readOGR(dsn="C:/Users/God/Documents/ML",layer="carreteras",verbose=FALSE,encoding="UTF-8")
+roads<-readOGR(dsn="C:/Users/God/Documents/ML",layer="carreteras",encoding="UTF-8")
 class(roads)
 
 ```
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-```{r read2, out.width="70%"}
-
-library(scales) # to use alpha for adding transparency
+This object can be simply plotted with the function `plot` which has a method for spatial objects.
+```{r read3, out.width="70%"}
 
 plot(roads,col=gray(0.75),lwd=4, axes=TRUE)
 
@@ -195,9 +202,10 @@ plot(roads,col=gray(0.75),lwd=4, axes=TRUE)
 ### Writing
 
 
-```{r write, eval=FALSE, tidy=TRUE}
+```{r write, eval=TRUE, tidy=TRUE}
 
-writeOGR(roads,dsn="C:/Users/God/Documents/ML",layer="crap",driver="ESRI Shapefile")
+writeOGR(roads,dsn="C:/Users/God/Documents/ML",layer="test",driver="ESRI Shapefile",overwrite=TRUE)
+list.files("C:/Users/God/Documents/ML")
 
 ```
 
@@ -207,7 +215,7 @@ writeOGR(roads,dsn="C:/Users/God/Documents/ML",layer="crap",driver="ESRI Shapefi
 
 ### From a `data.frame`
 
-Let's load some data that contains locations of Jaguars attacks in the Kalakmul reserve in Mexico. Interviews were done with farmers about whether attacks from jaguars (or cougars) happened with their cattle. 
+<!-- Let's load some data that contains locations of Jaguars attacks in the Kalakmul reserve in Mexico. Interviews were done with farmers about whether attacks from jaguars (or cougars) happened with their cattle.  -->
 
 
 ```{r shpdf1}
@@ -217,11 +225,11 @@ head(cat)
 
 ```
 
-This is a simple data.frame with X and Y columns representing longitudes and latitudes. 
+This is a simple `data.frame` with X and Y columns representing longitudes and latitudes. 
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-To transform this data.frame to a spatial object, we just have to do this:
+To transform this `data.frame` to a spatial object, we just have to do this:
 
 ```{r shpdf2}
 
@@ -233,10 +241,11 @@ class(cat)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-
-The object returned is now a `SpatialPointsDataFrame`. This object can be simply plotted with the function plot which has a method for Spatial objects.
+The object returned is now a `SpatialPointsDataFrame`.
 
 ```{r shpdf3, out.width="60%"}
+
+library(scales) # to use the alpha function for adding transparency
 
 plot(cat,col=alpha(ifelse(cat$Attack==0,"blue","red"),0.4),pch=16,cex=1.5,axes=TRUE)
 
@@ -263,7 +272,7 @@ plot(x,axes=TRUE)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-Creating a shapefile of polygons is slightly more complex and requires a couple more steps. We can use pipes for the **magrittr** package to make this easier. To close a polygon, the last point of the matrix needs to be the first point that starts the polygon.
+Creating a shapefile of polygons is slightly more complex and requires a couple more steps. We can use pipes from the **magrittr** package to make this easier. To close a polygon, the last point of the matrix needs to be the first point that starts the polygon.
 
 ```{r xscratchpol, out.width="50%"}
 
@@ -283,7 +292,7 @@ plot(z,axes=TRUE)
 
 ## Structure of spatial objects
 
-Spatial objects from the sp package are made with S4 classes. S4 classes are formal classes that can be tricky and hard to understand. Here, I won't go into the details of how S4 classes work, but I will describe the structure of spatial objects.
+<!-- Spatial objects from the sp package are made with S4 classes. S4 classes are formal classes that can be tricky and hard to understand. Here, I won't go into the details of how S4 classes work, but I will describe the structure of spatial objects. -->
 
 ### The `Spatial` class with `sp`
 
@@ -297,7 +306,7 @@ getClass("Spatial")
 
 ### Access slots with @
 
-The function names and the `$` applied on a spatial object behave the same way as on a data.frame, while the `@` operator allows to extract objects stored in the slots of the object. Different methods are also available to extract different information from spatial objects such bounding boxes (bbox), centroid coordinates (coordinates), etc. Type `?Spatial` to learn more about them.
+The function names and the `$` applied on a spatial object behave the same way as on a `data.frame`, while the `@` operator allows to extract objects stored in the slots of the object. Different methods are also available to extract different information from spatial objects such bounding boxes (`bbox`), centroid coordinates (`coordinates`), etc. Type `?Spatial` to learn more about them.
 
 Names of the columns in the `data.frame` of attributes.
 ```{r S4names}
@@ -311,7 +320,7 @@ Names of the different slots composing the object.
 slotNames(x)
 ```
 
-No se
+Look at the attribute table.
 ```{r S4slots2}
 head(cat@data)
 ```
@@ -337,19 +346,19 @@ Columns of the attribute table can be extracted just like in a `data.frame`.
 cat$Attack
 ```
 
-Extractions of elements in spatial objects stored in slots are made either by accessing them using slots (with `@` instead of `$` which access columns in the `data.frame` attribute table stored in `@data`) or more easily with extractor function such as `bbox`, `proj4string` or `coordinates`.
+<!-- Extractions of elements in spatial objects stored in slots are made either by accessing them using slots (with `@` instead of `$` which access columns in the `data.frame` attribute table stored in `@data`) or more easily with extractor function such as `bbox`, `proj4string` or `coordinates`. -->
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## Spatial operations
 
-Most spatial operations are done using the package `rgeos`. One of the requirement of functions in rgeos is that objects **need to be projected**. When objects are really large, some operation may start to take a long time (e.g. intersections with `gIntersection`).
+Most spatial operations are done using the package `rgeos`. One of the requirement of functions in rgeos is that objects **need to be projected**. When objects are really large, some operations may start to take a long time (e.g. intersections with `gIntersection`).
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### Cut or delimit
 
-Here are some common operations that can be done on points (but also lines or polygons).
+Here are some common operations that can be done on points (but also on lines or on polygons).
 
 ```{r points_op, fig.width=7,fig.height=4,out.width="100%"}
 library(rgeos)
@@ -364,7 +373,6 @@ for(i in seq_along(op)){
 ```
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
 
 Here are some common operations that are done on polygons.
 
@@ -392,7 +400,7 @@ for(i in seq_along(op)){
 cx<-gCentroid(x)
 plot(x,axes=TRUE)
 plot(cx,add=TRUE,col="red",lwd=3)
-text(x,round(gDistance(x,cx,byid=TRUE),2),adj=c(0,1.3),cex=0.8)
+text(x,label=round(gDistance(x,cx,byid=TRUE),2),adj=c(0,1.3),cex=0.8)
 
 ```
 
@@ -453,7 +461,7 @@ plot(s2,add=TRUE)
 
 ### Overlay
 
-Here we combine an over with Intersection, Length, buffers, etc.
+Here we combine an over with intersections, lengths, buffers, etc.
 
 ```{r over, fig.width=8,fig.height=7,out.width="60%",echo=TRUE}
 library(scales)
@@ -518,7 +526,7 @@ plot(gSimplify(poly,tol=0.6,topologyPreserve=TRUE),border="red",add=TRUE)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-```{r temp, out.width="50%",eval=FALSE}
+```{r temp, out.width="50%",eval=FALSE, echo=FALSE}
 
 library(rgbif)
 
@@ -531,46 +539,40 @@ plot(p,axes=TRUE)
 
 ```
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<!-- ### Rotate or MST -->
 
-### Rotate or MST
+<!-- ## Plotting -->
 
-## Plotting
+<!-- ### plot -->
 
-### plot
-
-```{r plot, out.width="50%"}
+```{r plot, out.width="50%", eval=FALSE, echo=FALSE}
 
 par(mar=c(0,0,0,0))
 plot(ch,border="red",col="blue",lwd=10)
 
 ```
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<!-- ### spplot -->
 
-### spplot
-
-Do an spplot on something
-```{r spplot, out.width="80%"}
+<!-- Do an spplot on something -->
+```{r spplot, out.width="80%", eval=FALSE, echo=FALSE}
 
 
 
 ```
 
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
 # PROJECTIONS
 
 As always, when playing with spatial data, one needs to be aware of projections. Assigning and transforming projections in R is not too difficult. It is mostly done with the `proj4string` and `spTransform` functions from **rgdal** package. 
 
-```{r proj_data, fig.width=6.5,fig.height=4,out.width="100%"}
+```{r proj_data, fig.width=6.5,fig.height=4,out.width="70%"}
 
 library(rgbif)
 
 x<-occ_search(scientificName="Phragmites australis",limit=3000,hasCoordinate=TRUE,country="CA")
 x<-as.data.frame(x$data)
 coordinates(x)<-~decimalLongitude+decimalLatitude
+plot(x)
 
 ```
 
@@ -649,7 +651,7 @@ can<-raster::getData('GADM',country='CAN',level=1)
 
 ## SOLUTION
 
-```{r ex1sol, out.width="60%"}
+```{r ex1sol, out.width="60%", echo=TRUE, include=TRUE}
 
 # first set seed
 set.seed(123)
@@ -735,9 +737,9 @@ r
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-## Raster formats
+<!-- ## Raster formats -->
 
-Rasters can be held in memory or on disk when they are too big.
+<!-- Rasters can be held in memory or on disk when they are too big. -->
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
@@ -982,7 +984,7 @@ plot(pr,col="red",border=NA,add=TRUE)
 
 # -- EXERCICE 2
 
-Get data for *Trillium cernuum* using package `rgbif` and calculate the mean annual temperature and annual precipitation in the speices range. [Bioclimatic variables](http://worldclim.org/bioclim) are described in the WorldClim pages.
+Get data for *Trillium cernuum* using package `rgbif` and calculate the mean annual temperature and annual precipitation in the species range. [Bioclimatic variables](http://worldclim.org/bioclim) are described in the WorldClim pages.
 
 Here is how to download the data.
 ```{r ex2, eval=FALSE}
@@ -993,13 +995,16 @@ r<-raster::getData('worldclim',var='bio',res=2.5,lon=-70,lat=65)[[1]]
 # download records
 x<-occ_search(scientificName="Trillium erectum",limit=1000,hasCoordinate=TRUE,country="CA")
 
+# x is a list and a tibble so it needs to be transformed to a data frame before turning it to a spatial object
+x<-as.data.frame(x$data)
+
 ```
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## SOLUTION
 
-```{r ex2sol, out.width="100%", dev.args=list(pointsize=9)}
+```{r ex2sol, out.width="100%", dev.args=list(pointsize=9), echo=TRUE, include=TRUE}
 
 # dowload climatic data
 r<-raster::getData('worldclim',var='bio',res=2.5,lon=-70,lat=65)
@@ -1196,29 +1201,24 @@ library(mapedit)
 
 x <- mapview() %>% editMap()
 plot(x)
-x <- as(x[[1]],"Spatial")
+#x <- as(x[[1]],"Spatial")
 plot(x)
 
 ```
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-# -- EXERCICE 3 
+<!-- # -- EXERCICE 3  -->
 
-Generate random home ranges in a region and measure percent overlap between them.
+<!-- Generate random home ranges in a region and measure percent overlap between them. -->
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-## SOLUTION 
+<!-- ## SOLUTION  -->
 
 ```{r exercices3hr, eval=FALSE}
 
 
 
 ```
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
 # MORE POSSIBILITIES
 
 The main book for learning to use R for spatial data is probably [Applied Spatial Data Analysis with R](http://www.asdar-book.org/) by Bivand et al. (2013)
@@ -1247,7 +1247,7 @@ A good online reference for doing spatial analyses with R is [rspatial.org](rspa
 
 ## Special packages
 
-### Landscape metrics with `SDMTools` or `spatialECO`
+### Landscape metrics with `SDMTools` or `spatialEco`
 
 ```{r metrics1}
 
@@ -1280,39 +1280,27 @@ Scalebar(x=90,y=3,distance=20,unit='m',scale=1)
 a
 ```
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<!-- ### Spatial statistics with `spatstat` -->
 
-### Spatial statistics with `spatstat`
+<!-- ### Spatial dependence with `spdep` -->
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<!-- Show an example of computing Moran's I on a SpatialPolygons of ecodistricts. -->
 
-### Spatial dependence with `spdep`
+<!-- ### Kriging with `gstat` -->
 
-Show an example of computing Moran's I on a SpatialPolygons of ecodistricts.
+<!-- library(gstat) -->
 
+<!-- v <- variogram(elev~1,data=eco2,cutoff=2500000,width=10000) # calculates sample variogram values  -->
+<!-- plot(v) -->
+<!-- vfit <- fit.variogram(v, model=vgm("Sph")) # fit model -->
 
-```{r ecodistricts}
-
-
-```
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-### Kriging with `gstat`
-
-library(gstat)
-
-v <- variogram(elev~1,data=eco2,cutoff=2500000,width=10000) # calculates sample variogram values 
-plot(v)
-vfit <- fit.variogram(v, model=vgm("Sph")) # fit model
-
-plot(v,vfit)
+<!-- plot(v,vfit) -->
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-### kriging
+<!-- ### kriging -->
 
-```{r spatialcorr}
+```{r spatialcorr, eval=FALSE, echo=FALSE}
 
 library(foreign)
 
@@ -1393,15 +1381,11 @@ plot(eco,col=colo.scale(eco$elev,c("brown","orange","lightgoldenrod","green","da
 
 ```
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<!-- ### Animal movements with `adehabitat` and `trip` -->
 
-### Animal movements with `adehabitat` and `trip`
+<!-- ### Spatial Autocorrelation -->
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-### Spatial Autocorrelation
-
-```{r SA}
+```{r SA, eval=FALSE, echo=FALSE}
 
 library(spdep)
 
@@ -1410,27 +1394,25 @@ library(spdep)
 
 ```
 
-### Kernel smoothing with `ks`
+<!-- ### Kernel smoothing with `ks` -->
 
-### Great circles with `geosphere`
+<!-- ### Great circles with `geosphere` -->
 
-## Extensions
+<!-- ## Extensions -->
 
-### RQGIS
+<!-- ### RQGIS -->
 
-### RpostGIS
+<!-- ### RpostGIS -->
 
-### RGRASS
+<!-- ### RGRASS -->
 
-# `sf`: THE NEW SPATIAL
+# `sf`: SIMPLE FEATURES FOR R
 
-## Why?
+[Vignette 1](https://cran.r-project.org/web/packages/sf/vignettes/sf1.html)
 
-### S3 classes
-
-### Tidyverse
-
-### From `sp` to `sf` and back
+- S3 class
+- Interacts with the tidyverse and dplyr
+- Easy conversion from **sp** to **sf**
 
 
 
