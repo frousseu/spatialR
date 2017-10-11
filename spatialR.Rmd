@@ -759,8 +759,13 @@ plot(r2)
 Rasters can be aggregated and merged.
 ```{r merge, out.width="70%"}
 
+ncell(r1)
+
 r1<-aggregate(r1,10)
 r2<-aggregate(r2,10)
+
+ncell(r1)
+
 r<-merge(r1,r2)
 plot(r)
 
@@ -810,10 +815,6 @@ temp<-stack(temp)
 
 ## Raster operations
 
-### Summarize
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
 ### Extract
 
 ```{r extract}
@@ -825,7 +826,7 @@ hist(e,xlab="Altitude",main="")
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-Speeding things up with `velox`
+#### Speeding things up with `velox`
 
 ```{r velox}
 library(velox)
@@ -938,19 +939,18 @@ hist(e[[1]])
 
 Convert rasters values to contours in a SpatialLines object.
 
-```{r raster2cont}
+```{r raster2cont, out.width="70%"}
 
 con<-rasterToContour(rast)
 con
-plot(con)
+plot(rast)
+plot(con,add=TRUE)
 
 ```
 
-## shp <-> raster
-
 ### Rasterizing a polygon
 
-```{r rasterizepol}
+```{r rasterizepol, out.width="70%"}
 
 pr<-rasterize(buff,r)
 pr
@@ -972,19 +972,19 @@ plot(pr,col="red",border=NA,add=TRUE)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-## Plotting with `rasterVis`
+<!-- ## Plotting with `rasterVis` -->
 
-## `SpatialGrids` and `SpatialPixels`
+<!-- ## `SpatialGrids` and `SpatialPixels` -->
 
-## Grids
+<!-- ## Grids -->
 
-## Pixels
+<!-- ## Pixels -->
 
 # -- EXERCICE 2
 
-Get data from RGBIF for Trillium erectum and measure the climatic enveloppe using different mean, min or max annual temperatures and measure the range of altitudes in which the species is found. Also, using a raster, compute the density of records in cells across the range of the species.
+Get data for *Trillium cernuum* using package `rgbif` and calculate the mean annual temperature and annual precipitation in the speices range. [Bioclimatic variables](http://worldclim.org/bioclim) are described in the WorldClim pages.
 
-Here is a hint to download the data.
+Here is how to download the data.
 ```{r ex2, eval=FALSE}
 
 # download temperature data
@@ -997,24 +997,48 @@ x<-occ_search(scientificName="Trillium erectum",limit=1000,hasCoordinate=TRUE,co
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-
-
 ## SOLUTION
 
-```{r ex2sol}
+```{r ex2sol, out.width="100%", dev.args=list(pointsize=9)}
 
-# dowload data
-r<-raster::getData('worldclim',var='bio',res=2.5,lon=-70,lat=65)[[1]]
-x<-occ_search(scientificName="Trillium erectum",limit=1000,hasCoordinate=TRUE,country="CA")
+# dowload climatic data
+r<-raster::getData('worldclim',var='bio',res=2.5,lon=-70,lat=65)
+r<-subset(r,c(1,12))
+names(r)<-c("temp","prec")
+
+# download Trillium data
+x<-occ_search(scientificName="Trillium cernuum",limit=1000,hasCoordinate=TRUE,country="CA")
 
 # get the records in a spatial object
 x<-as.data.frame(x$data)
 coordinates(x)<-~decimalLongitude+decimalLatitude
+
+# use the same projection for both object
 proj4string(x)<-CRS("+init=epsg:4326")
 x<-spTransform(x,CRS(proj4string(r)))
 
-# extract values at the site of locations
-e<-extract(x,r)
+# reduce raster size to the bounding box of the records
+r<-crop(r,extent(x))
+
+# get convex hull of distribution
+a<-gConvexHull(x)
+
+# check data
+par(mfrow=c(2,1),mar=c(2,3,1,3))
+plot(r[[1]])
+plot(x,add=TRUE)
+plot(a,add=TRUE)
+plot(r[[2]])
+plot(x,add=TRUE)
+plot(a,add=TRUE)
+
+# extract values within the range of the species
+e<-extract(r,a)
+
+# check distribution of values for mean annual temperature and precipitation
+par(mfrow=c(1,2))
+hist(e[[1]][,1]/10,xlab="")
+hist(e[[1]][,2],xlab="")
 
 ```
 
@@ -1025,16 +1049,79 @@ e<-extract(x,r)
 
 ### `plot`
 
-### `levelplot`
+```{r map_plot, out.width="70%", dev.args=list(pointsize=9)}
+
+data(meuse)
+coordinates(meuse)<-~x+y
+proj4string(meuse) <- CRS("+init=epsg:28992")
+head(meuse)
+plot(meuse)
+
+```
 
 ### `spplot`
 
-### `ggplot` and `ggmap`
+```{r spplot_map, out.width="70%", dev.args=list(pointsize=9)}
 
-### `ggspatial`
+spplot(meuse,z=c("cadmium","copper","lead","zinc"))
+
+```
+
+### `levelplot`
+
+```{r levelplot, out.width="70%", dev.args=list(pointsize=9)}
+
+library(rasterVis)
+
+r<-raster::getData('worldclim',var='tmean',res=0.5,lon=-71,lat=45)
+r<-crop(r,extent(-73,-70,45,48))
+
+levelplot(r/10,col.regions=rasterTheme()$regions$col,cuts=99)
+
+```
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
+### `ggspatial`
+
+```{r ggspatial_map, out.width="70%", dev.args=list(pointsize=9)}
+
+library(ggspatial)
+
+ggspatial(meuse)
+
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+### `OpenStreetMap`
+
+```{r OSM}
+library(dismo)
+
+test<-gmap(meuse,type="roadmap",filename="map.gmap",scale=2)
+p<-spTransform(meuse,CRS(proj4string(test)))
+test<-crop(test,p)
+plot(test)
+plot(p,add=TRUE)
+
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+### `ggmap`
+
+```{r ggmap}
+library(ggmap)
+
+test<-gmap("Sherbrooke",type="satellite",scale=2,zoom=13,rgb=FALSE)
+plot(test)
+
+qmap("Sherbrooke",zoom=14,maptype="satellite")
+
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ## INTERACTIVE
 
@@ -1053,43 +1140,13 @@ plot(x)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-### `OpenStreetMap`
 
-```{r }
-library(dismo)
-#library(OpenStreetMap)
-
-test<-gmap(p,type="roadmap",filename="map.gmap",scale=2)
-proj4string(p)<-CRS("+init=epsg:4326")
-
-p<-spTransform(p,CRS(proj4string(test)))
-test<-crop(test,p)
-plot(test)
-plot(p,add=TRUE)
-
-```
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-### `ggmap`
-
-```{r }
-library(ggmap)
-
-test<-gmap("Sherbrooke",type="satellite",filename="map.gmap",scale=2,zoom=15,rgb=FALSE)
-plot(test)
-
-qmap("Sherbrooke",zoom=15,maptype="satellite")
-
-```
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 ### `leaflet`
 
 Here present leaflet and leafletExtras
 
-```{r leaflet1, tidy=FALSE}
+```{r leaflet1, tidy=FALSE, message=TRUE, warning=TRUE}
 
 library(leaflet)
 library(leaflet.extras)
@@ -1113,7 +1170,9 @@ leaflet(cat) %>%
 cat$attack<-as.factor(cat$Attack)
 
 library(tmap)
+
 tmap_mode("view")
+
 tm_shape(roads)+
   tm_lines()+
   tm_shape(cat)+
@@ -1131,17 +1190,14 @@ tm_shape(roads)+
 Here is a test with using [mapedit](http://r-spatial.org/r/2017/06/09/mapedit_0-2-0.html) functionality.
 
 ```{r mapedit, eval=FALSE}
+
 library(mapview)
 library(mapedit)
-library(sp)
 
 x <- mapview() %>% editMap()
 plot(x)
 x <- as(x[[1]],"Spatial")
 plot(x)
-
-#x<-editMap(leaflet() %>% addTiles())
-#plot(x[[1]])
 
 ```
 
@@ -1149,7 +1205,7 @@ plot(x)
 
 # -- EXERCICE 3 
 
-Generate random home=ranges in a region and measure percent overlap between them.
+Generate random home ranges in a region and measure percent overlap between them.
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
@@ -1169,11 +1225,11 @@ The main book for learning to use R for spatial data is probably [Applied Spatia
 
 | Package | Use |
 | :-------------:|:----------------------------------------|
-| **spatstat** |  |
-| **adehabitat** |  |
-| **gstat** |  | 
-| **SDMTools** |  | 
-| **spdep** |  |
+| **spatstat** | Huge package mainly for analysing spatial point patterns | 
+| **adehabitat** | A collection of packages for studying habitat selection |
+| **gstat** | Variograms, geostatistics, kriging, etc. | 
+| **SDMTools** | Tools for Species Distribution Modeling | 
+| **spdep** | Tools for studying spatial dependence |
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
