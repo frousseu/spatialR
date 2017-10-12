@@ -33,12 +33,26 @@ output:
 geometry: left=2cm,right=2cm,top=3cm,bottom=2.5cm
 always_allow_html: yes
 ---
+
 <!-- <script> -->
    <!-- $(document).ready(function() { -->
      <!-- $head = $('#header'); -->
      <!-- $head.prepend('<img src=\"cef.gif\" style=\"float: right;width: 75px;\"/>') -->
    <!-- }); -->
 <!-- </script> -->
+
+
+<script>
+    $(document).ready(function() {
+      $items = $('div#TOC li');
+      $items.each(function(idx) {
+        num_ul = $(this).parentsUntil('#TOC').length;
+        $(this).css({'text-indent': num_ul * 20, 'padding-left': 0});
+      });
+
+    });
+</script>
+
 
 <style>
 
@@ -67,29 +81,29 @@ body {
 
 .list-group-item.active:focus{
     z-index: 2;
-    color: #fff;
-    background-color: DarkGreen;
-    border-color: DarkGreen;
-    font-weight: bold;
-    font-color: Darkgreen;
+    color: darkgreen;
+    background-color: #EEEEEE;
+    border-color: red;
+    font-weight: bolder;
+    font-color: red;
 }
 
 .list-group-item.active:hover {
     z-index: 2;
-    color: #fff;
-    background-color: DarkGreen;
-    border-color: DarkGreen;
-    font-weight: bold;
-    font-color: Darkgreen;
+    color: darkgreen;
+    background-color: #EEEEEE;
+    border-color: red;
+    font-weight: bolder;
+    font-color: red;
 }
 
 .list-group-item.active{
     z-index: 2;
-    color: #fff;
-    background-color: DarkGreen;
-    border-color: DarkGreen;
-    font-weight: bold;
-    font-color: Darkgreen;
+    color: darkgreen;
+    background-color: #EEEEEE;
+    border-color: red;
+    font-weight: bolder;
+    font-color: red;
 }
 
 h1.title {
@@ -133,7 +147,7 @@ h5 {
 
 ```{r options, include=TRUE, cache=FALSE, echo=FALSE, message=FALSE, eval=TRUE}
 options(width=70)
-knitr::opts_chunk$set(cache=TRUE,comment="##",eval=TRUE,error=TRUE,echo=TRUE,message=FALSE,warning=FALSE,tidy=FALSE,size="LARGE",fig.align="center",out.width="100%")
+knitr::opts_chunk$set(cache=TRUE,comment="##",eval=TRUE,error=TRUE,echo=TRUE,message=FALSE,warning=FALSE,tidy=TRUE,size="LARGE",fig.align="center",out.width="100%")
 
 ```
 
@@ -271,18 +285,44 @@ plot(x,axes=TRUE)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-Creating a shapefile of polygons is slightly more complex and requires a couple more steps. We can use pipes from the **magrittr** package to make this easier. To close a polygon, the last point of the matrix needs to be the first point that starts the polygon.
+Creating a shapefile of polygons is slightly more complex and requires a couple more steps. 
 
-```{r xscratchpol, out.width="50%"}
+We will first show the use of pipes ( `%>%` )from the **magrittr** package to make this easier. Pipes are used to apply a series of operations on an object. The first argument of a function in a pipe sequence is by default the result of the previous operation. It is meant to increase the readability of code.
+
+```{r magrittr}
 
 library(magrittr)
-m<-rbind(c(1,1),c(1,2),c(2,2),c(3,2),c(2,1))
-z<-rbind(m, m[1, ]) %>% 
-  Polygon %>% 
-  list %>% 
-  Polygons(ID = 1) %>% 
-  list %>% 
-  SpatialPolygons
+
+temp<-1:10
+sum(rep(mean(temp),50))
+
+temp %>% 
+  mean %>% 
+  rep(50) %>% 
+  sum
+
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+To create a polygon, we need to have a matrix of points and in wich the first point is the same as the last to close the polygon.
+```{r xscratchpol1, out.width="50%", tidy=FALSE}
+
+m <- rbind(c(1, 1), c(1, 2), c(2, 2), c(3, 2), c(2, 1))
+m <- rbind(m, m[1, ])
+
+```
+
+Then we can use pipes to go through the series of steps to build a `SpatialPolygons`. Type `?SpatialPolygons` to better understand the hierarchical structure of polygons.
+```{r xscratchpol2, out.width="50%", tidy=FALSE}
+
+z <- m %>% 
+       Polygon %>% 
+       list %>% 
+       Polygons(ID = 1) %>% 
+       list %>% 
+       SpatialPolygons
+
 plot(z,axes=TRUE)
 
 ```
@@ -725,12 +765,13 @@ x<-spTransform(x,CRS(proj4string(r)))
 
 r<-rasterize(x,r,field=1,fun="count",background=0)
 
-r[r==0]<-NA # everything 0 we won't plot
+r<-crop(r,extent(x)) # crop the raster to the extrent of the data
+r[r==0]<-NA # do not show empty cells to better visualize abundance of records
 
-plot(canada,col=gray(0.6),border=gray(0.6),xlim=unname(bbox(x)[1,]),ylim=unname(bbox(x)[2,]))
-plot(r,col=alpha(rev(heat.colors(100)),0.75),add=TRUE)
+plot(canada,col="white",border=gray(0.7),xlim=unname(bbox(x)[1,]),ylim=unname(bbox(x)[2,]),bg=gray(0.7),axes=TRUE)
+plot(r,col=rev(heat.colors(100)),add=TRUE)
+box()
 
-r
 
 ```
 
@@ -797,7 +838,7 @@ r
 
 ```{r stack2}
 
-temp<-raster::getData('worldclim',var='tmean',res=0.5,lon=-71,lat=45)
+temp<-raster::getData('worldclim',var='tmean',res=10)
 temp
 plot(temp)
 
@@ -1006,7 +1047,7 @@ x<-as.data.frame(x$data)
 ```{r ex2sol, out.width="100%", dev.args=list(pointsize=9), echo=TRUE, include=TRUE}
 
 # dowload climatic data
-r<-raster::getData('worldclim',var='bio',res=2.5,lon=-70,lat=65)
+r<-raster::getData('worldclim',var='bio',res=10)
 r<-subset(r,c(1,12))
 names(r)<-c("temp","prec")
 
@@ -1077,7 +1118,7 @@ spplot(meuse,z=c("cadmium","copper","lead","zinc"))
 
 library(rasterVis)
 
-r<-raster::getData('worldclim',var='tmean',res=0.5,lon=-71,lat=45)
+r<-raster::getData('worldclim',var='tmean',res=10)
 r<-crop(r,extent(-73,-70,45,48))
 
 levelplot(r/10,col.regions=rasterTheme()$regions$col,cuts=99)

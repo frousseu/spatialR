@@ -7,6 +7,8 @@ Course on using R for spatial tasks
 
 - Simplify code and possibly remove loops
 
+- Comment everything
+
 - Better explain the writeOGR part
 
 - Better explain to which packages the different functions belong. Maybe list the different functions used to get some Data (occ_search, getData, etc.)
