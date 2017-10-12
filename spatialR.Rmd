@@ -33,7 +33,6 @@ output:
 geometry: left=2cm,right=2cm,top=3cm,bottom=2.5cm
 always_allow_html: yes
 ---
-
 <!-- <script> -->
    <!-- $(document).ready(function() { -->
      <!-- $head = $('#header'); -->
@@ -171,7 +170,7 @@ First, let's look in the folder where the shapefile is located.
 
 ```{r read1, size="tiny"}
 
-list.files("C:/Users/God/Documents/ML")
+list.files("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data")
 
 ```
 
@@ -183,7 +182,7 @@ Reading shapefiles is done with the function `readOGR` from the `rgdal` package.
 
 library(sp)
 library(rgdal)
-roads<-readOGR(dsn="C:/Users/God/Documents/ML",layer="carreteras",encoding="UTF-8")
+roads<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data",layer="carreteras",encoding="UTF-8")
 class(roads)
 
 ```
@@ -204,7 +203,7 @@ plot(roads,col=gray(0.75),lwd=4, axes=TRUE)
 
 ```{r write, eval=TRUE, tidy=TRUE}
 
-writeOGR(roads,dsn="C:/Users/God/Documents/ML",layer="test",driver="ESRI Shapefile",overwrite=TRUE)
+writeOGR(roads,dsn="C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data",layer="test",driver="ESRI Shapefile",overwrite=TRUE)
 list.files("C:/Users/God/Documents/ML")
 
 ```
@@ -220,7 +219,7 @@ list.files("C:/Users/God/Documents/ML")
 
 ```{r shpdf1}
 
-cat<-read.table("C:/Users/God/Documents/ML/cat.txt",header=TRUE,stringsAsFactors=FALSE)
+cat<-read.table("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data/cat.txt",header=TRUE,stringsAsFactors=FALSE)
 head(cat)
 
 ```
@@ -747,8 +746,8 @@ r
 
 ```{r read_rast, out.width="70%"}
 
-r1<-raster("C:/Users/God/Documents/ML/cdem_dem_021E.tif")
-r2<-raster("C:/Users/God/Documents/ML/cdem_dem_031H.tif")
+r1<-raster("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data/cdem_dem_021E.tif")
+r2<-raster("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data/cdem_dem_031H.tif")
 
 par(mfrow=1:2)
 plot(r1)
@@ -990,12 +989,12 @@ Here is how to download the data.
 ```{r ex2, eval=FALSE}
 
 # download temperature data
-r<-raster::getData('worldclim',var='bio',res=2.5,lon=-70,lat=65)[[1]]
+r<-raster::getData('worldclim',var='bio',res=2.5,lon=-70,lat=65)
 
 # download records
 x<-occ_search(scientificName="Trillium erectum",limit=1000,hasCoordinate=TRUE,country="CA")
 
-# x is a list and a tibble so it needs to be transformed to a data frame before turning it to a spatial object
+# the object returned is a gbif object and we need to extract the tibble in the data element and turn it into a data.frame x
 x<-as.data.frame(x$data)
 
 ```
