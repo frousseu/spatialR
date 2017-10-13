@@ -289,17 +289,18 @@ Creating a shapefile of polygons is slightly more complex and requires a couple 
 
 We will first show the use of pipes ( `%>%` )from the **magrittr** package to make this easier. Pipes are used to apply a series of operations on an object. The first argument of a function in a pipe sequence is by default the result of the previous operation. It is meant to increase the readability of code.
 
-```{r magrittr}
+```{r magrittr, tidy=FALSE}
 
 library(magrittr)
 
-temp<-1:10
-sum(rep(mean(temp),50))
+temp <- 1:10
+
+sum(rep(mean(temp), 50))
 
 temp %>% 
-  mean %>% 
-  rep(50) %>% 
-  sum
+mean %>% 
+rep(50) %>% 
+sum
 
 ```
 
@@ -308,22 +309,23 @@ temp %>%
 To create a polygon, we need to have a matrix of points and in wich the first point is the same as the last to close the polygon.
 ```{r xscratchpol1, out.width="50%", tidy=FALSE}
 
-m <- rbind(c(1, 1), c(1, 2), c(2, 2), c(3, 2), c(2, 1))
+m <- rbind(c(0, 0), c(1, 2), c(2, 2), c(3, 2), c(2, 1))
 m <- rbind(m, m[1, ])
 
 ```
 
 Then we can use pipes to go through the series of steps to build a `SpatialPolygons`. Type `?SpatialPolygons` to better understand the hierarchical structure of polygons.
-```{r xscratchpol2, out.width="50%", tidy=FALSE}
+```{r xscratchpol2, out.width="50%", tidy=FALSE, cache=FALSE}
 
-z <- m %>% 
-       Polygon %>% 
-       list %>% 
-       Polygons(ID = 1) %>% 
-       list %>% 
-       SpatialPolygons
+pol <- m %>% 
+     Polygon %>% 
+     list %>% 
+     Polygons(ID = 1) %>% 
+     list %>% 
+     SpatialPolygons
 
-plot(z,axes=TRUE)
+plot(pol,axes=TRUE)
+length(pol)
 
 ```
 
@@ -331,11 +333,9 @@ plot(z,axes=TRUE)
 
 ## Structure of spatial objects
 
-<!-- Spatial objects from the sp package are made with S4 classes. S4 classes are formal classes that can be tricky and hard to understand. Here, I won't go into the details of how S4 classes work, but I will describe the structure of spatial objects. -->
+Spatial objects from the sp package are made with S4 classes. S4 classes are formal classes that can be tricky and hard to understand. Here, I won't go into the details of how S4 classes work, but I will describe the structure of spatial objects.
 
-### The `Spatial` class with `sp`
-
-```{r class, eval=TRUE}
+```{r class, eval=TRUE, cache=FALSE}
 library(sp)
 getClass("Spatial")
 
@@ -343,49 +343,108 @@ getClass("Spatial")
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
+### Indexing
+
+Spatial objects either come with or without attributes. For example, points can be stored in a `SpatialPoints` object or in a `SpatialPointsDataFrame` object. When spatial objects don't have attributes, they behave like vectors and can be indexed as such. 
+
+```{r index1, cache=FALSE}
+length(pol)
+dim(pol)
+pol[1]
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+When they have attributes, they can be indexed just like a `data.frame`.
+
+```{r index2, cache=FALSE}
+length(cat)
+dim(cat)
+cat[1:3,]
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+Columns of the attribute table can also be extracted just like in a `data.frame`.
+```{r S4slots5, cache=FALSE}
+cat$Attack
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ### Access slots with @
 
-The function names and the `$` applied on a spatial object behave the same way as on a `data.frame`, while the `@` operator allows to extract objects stored in the slots of the object. Different methods are also available to extract different information from spatial objects such bounding boxes (`bbox`), centroid coordinates (`coordinates`), etc. Type `?Spatial` to learn more about them.
+The function `names` and the `$` applied on a spatial object behave the same way as on a `data.frame`, while the `@` operator allows to extract objects stored in the slots of the object. Different methods are also available to extract different information from spatial objects such bounding boxes (`bbox`), centroid coordinates (`coordinates`), etc. Type `?Spatial` to learn more about them.
 
 Names of the columns in the `data.frame` of attributes.
-```{r S4names}
+```{r S4names, cache=FALSE}
 names(x)
 ```
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 Names of the different slots composing the object.
-```{r S4slots}
+```{r S4slots, cache=FALSE}
 slotNames(x)
 ```
 
-Look at the attribute table.
-```{r S4slots2}
+Look at the attribute table which corresponds to a `data.frame`.
+```{r S4slots2, cache=FALSE}
 head(cat@data)
 ```
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 Extract coordinates.
-```{r S4slots3}
+```{r S4slots3, cache=FALSE}
 head(cat@coords)
 ```
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 Slot containing the bounding box.
-```{r S4slots4}
+```{r S4slots4, cache=FALSE}
 cat@bbox
 ```
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-Columns of the attribute table can be extracted just like in a `data.frame`.
-```{r S4slots5}
-cat$Attack
+## -- Exercice 1 --
+
+Build a `SpatialPointsDataFrame` with 100 random locations centered on Sherbrooke, plot the results and write the results to a shapefile. Hint: use the function `runif` to generate random values within a given range.
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+### Solution
+
+Here is a solution
+```{r ex00, out.width="80%", cache=FALSE}
+
+# Find coordinates using Google maps and generate random values for lat lon coordinates and an id
+n<-100
+lon<-runif(n,-71.958,-71.822)
+lat<-runif(n,45.383,45.433)
+id<-1:n
+
+# Build a data.frame and turn it to a SpatialPointsDataFrame
+d<-data.frame(lon,lat,id)
+coordinates(d)<-~lon+lat
+
+# Plot the result
+plot(d,axes=TRUE)
+
 ```
 
-<!-- Extractions of elements in spatial objects stored in slots are made either by accessing them using slots (with `@` instead of `$` which access columns in the `data.frame` attribute table stored in `@data`) or more easily with extractor function such as `bbox`, `proj4string` or `coordinates`. -->
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+```{r ex002, out.width="80%", cache=FALSE}
+# Write points to a shapefile
+writeOGR(d,dsn=".",layer="sherby",driver="ESRI Shapefile", overwrite_layer=TRUE)
+
+# Check if the shapefile has been written
+list.files()
+
+```
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
@@ -394,6 +453,43 @@ cat$Attack
 Most spatial operations are done using the package `rgeos`. One of the requirement of functions in rgeos is that objects **need to be projected**. When objects are really large, some operations may start to take a long time (e.g. intersections with `gIntersection`).
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+### Overlay
+
+The function over from package sp is used to determine whether different entities overlap. It returns a vector or a data.frame with the identities or the characteristics of overlapping elements.
+
+```{r overlay1, fig.width=7,fig.height=4,out.width="100%"}
+b<-gUnion(x,pol)
+
+xlim<-bbox(b)[1,]
+ylim<-bbox(b)[2,]
+
+plot(x,axes=TRUE,xlim=xlim,ylim=ylim)
+plot(pol,add=TRUE)
+
+class(x)
+class(pol)
+
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+As can be seen in the help files for `?over`, if the second object is a spatial object without attributes, a vector with the same length as the first element is returned with the first overlapping id in the second element.If the second element has attribute data, attribute data are returned.
+
+```{r overlay2, fig.width=7,fig.height=4,out.width="100%"}
+
+# Returns the
+o<-over(x,pol)
+o
+
+plot(x[!is.na(o),],add=TRUE,col="red")
+
+# Returns the
+o<-over(pol,x)
+o
+
+
+```
 
 ### Cut or delimit
 
@@ -434,7 +530,8 @@ for(i in seq_along(op)){
 
 ### Measure distances
 
-```{r measure_distance, out.width="60%"}
+Here, let's measure the distance between each points and their centroid.
+```{r measure_distance, out.width="100%"}
 
 cx<-gCentroid(x)
 plot(x,axes=TRUE)
@@ -447,12 +544,13 @@ text(x,label=round(gDistance(x,cx,byid=TRUE),2),adj=c(0,1.3),cex=0.8)
 
 ### Measure areas
 
-```{r measure_area, fig.width=7,fig.height=5,out.width="70%"}
+Here, let's calculate the area of each polygon of a Delaunay triangulation. Also, let's use the `polygonsLabel` function from rgeos to plot the values in a good location in each polygon.
+```{r measure_area, fig.width=7,fig.height=5,out.width="100%"}
 
 ch<-gDelaunayTriangulation(x)
 area<-gArea(ch,byid=TRUE)
 plot(ch,axes=TRUE)
-polygonsLabel(ch,labels=round(area,2),cex=0.4,gridpoints=1000)
+polygonsLabel(ch,labels=round(area,2),cex=0.6,gridpoints=1000,method="centroid")
 
 ```
 
@@ -470,8 +568,8 @@ n<-50
 type<-c("random","stratified","regular","hexagonal")
 par(mfrow=c(2,2),mar=c(0,0,2,0))
 for(i in seq_along(type)){
-  s<-spsample(z,n,type=type[i])  
-  plot(z,main=type[i],font=2)
+  s<-spsample(pol,n,type=type[i])  
+  plot(pol,main=type[i],font=2)
   plot(s,pch=1,add=TRUE)
 }
 
@@ -487,8 +585,8 @@ set.seed(12345)
 N<-10 # number of random polygons
 n<-5 # number of random points within each polygons
 
-plot(z)
-s1<-gBuffer(spsample(z,N,type="random"),byid=TRUE,width=0.1)
+plot(pol)
+s1<-gBuffer(spsample(pol,N,type="random"),byid=TRUE,width=0.1)
 plot(s1,add=TRUE)
 s2<-sapply(s1@polygons,spsample,n=n,type="random")
 s2<-do.call("rbind",s2)
@@ -498,7 +596,7 @@ plot(s2,add=TRUE)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-### Overlay
+### Combine operations
 
 Here we combine an over with intersections, lengths, buffers, etc.
 
@@ -600,6 +698,54 @@ plot(ch,border="red",col="blue",lwd=10)
 
 ```
 
+## -- Exercice 2 --
+
+Calculate the proportion of forest in 10 random buffers across a landscape. Let's first generate the landscape.
+
+```{r ex0, tidy=FALSE}
+
+set.seed(123)
+
+x<-runif(100, 0, 100)
+y<-runif(100, 0, 100)
+
+h <- cbind(x, y) %>% 
+     SpatialPoints %>% 
+     gBuffer(width = rpois(length(x), 4), byid = TRUE) %>% 
+     gEnvelope(byid = TRUE) %>% 
+     gUnaryUnion
+     
+
+plot(h, col = "green4", border = NA, axes = TRUE)
+
+```
+
+Here is a solution.
+```{r ex0sol, echo=TRUE, tidy=FALSE}
+
+# First throw 10 random points within the envelope of the landscape and then generates buffers around these points
+b<-h %>% 
+   gEnvelope %>% 
+   spsample(10, type = "random") %>% 
+   gBuffer(width = 10, byid = TRUE)
+
+# Plot the buffers
+plot(h, col = "green4", border = NA, axes = TRUE)
+plot(b, add = TRUE)
+
+# Intersect the buffers with the forest and plot the result
+int<-gIntersection(b, h, byid = TRUE)
+plot(int, add = TRUE, col = "red", border = NA)
+
+# Compute the proportion of forested areas within each buffer
+pa <- gArea(int, byid = TRUE) / gArea(b, byid = TRUE)
+
+# Add the value on the plot
+text(coordinates(b), label = round(pa, 2))
+
+```
+
+
 # PROJECTIONS
 
 As always, when playing with spatial data, one needs to be aware of projections. Assigning and transforming projections in R is not too difficult. It is mostly done with the `proj4string` and `spTransform` functions from **rgdal** package. 
@@ -676,11 +822,11 @@ All functions from package rgeos require that spatial objects are projected. Oth
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-# -- EXERCICE 1
+# -- Exercice 2 --
 
 Generate a set of 50 200km random buffers across Canada and measure the level of overlap between these buffers.
 
-```{r ex1, eval=FALSE}
+```{r exA, eval=FALSE}
 
 can<-raster::getData('GADM',country='CAN',level=1)
 
@@ -690,7 +836,7 @@ can<-raster::getData('GADM',country='CAN',level=1)
 
 ## SOLUTION
 
-```{r ex1sol, out.width="60%", echo=TRUE, include=TRUE}
+```{r exAsol, out.width="60%", echo=TRUE, include=TRUE}
 
 # first set seed
 set.seed(123)
@@ -1022,7 +1168,7 @@ plot(pr,col="red",border=NA,add=TRUE)
 
 <!-- ## Pixels -->
 
-# -- EXERCICE 2
+# -- Exercice 2 --
 
 Get data for *Trillium cernuum* using package `rgbif` and calculate the mean annual temperature and annual precipitation in the species range. [Bioclimatic variables](http://worldclim.org/bioclim) are described in the WorldClim pages.
 
