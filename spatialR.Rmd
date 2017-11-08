@@ -9,6 +9,7 @@ output:
     fig_width: 6
     number_sections: no
     toc: yes
+    toc_depth: 5
     toc_float:
       collapsed: yes
       smooth_scroll: no
@@ -21,7 +22,7 @@ output:
   html_notebook:
     number_sections: no
     toc: yes
-    toc_depth: 4
+    toc_depth: 5
   ioslides_presentation:
     smaller: yes
     transition: faster
@@ -151,7 +152,7 @@ knitr::opts_chunk$set(cache=TRUE,comment="##",eval=TRUE,error=TRUE,echo=TRUE,mes
 
 ```
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 # INTRODUCTION
 
@@ -213,7 +214,7 @@ plot(roads,col=gray(0.75),lwd=4, axes=TRUE)
 
 What's contained in this object?
 
-```{r read4, out.width="70%", eval=FALSE}
+```{r read4, out.width="70%"}
 
 head(roads)
 
@@ -260,11 +261,11 @@ coordinates(cat)<-~X+Y
 class(cat)
 
 ```
+The object returned is now a `SpatialPointsDataFrame`.
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-The object returned is now a `SpatialPointsDataFrame`.
-
+Here is what it looks like.
 ```{r shpdf3, out.width="60%"}
 
 library(scales) # to use the alpha function for adding transparency
@@ -294,9 +295,7 @@ plot(x,axes=TRUE)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-Creating a shapefile of polygons is slightly more complex and requires a couple more steps. 
-
-We will first show the use of pipes ( `%>%` )from the **magrittr** package to make this easier. Pipes are used to apply a series of operations on an object. The first argument of a function in a pipe sequence is by default the result of the previous operation. It is meant to increase the readability of code.
+Creating a shapefile of polygons is slightly more complex and requires a couple more steps. We will first show the use of pipes ( `%>%` )from the **magrittr** package to make this easier. Pipes are used to apply a series of operations on an object. The first argument of a function in a pipe sequence is by default the result of the previous operation. It is meant to increase the readability of code.
 
 ```{r magrittr, tidy=FALSE}
 
@@ -323,7 +322,7 @@ m <- rbind(m, m[1, ])
 
 ```
 
-Then we can use pipes to go through the series of steps to build a `SpatialPolygons`. Type `?SpatialPolygons` to better understand the hierarchical structure of polygons.
+Then we can use pipes to go through the series of steps to build a `SpatialPolygons`. Type `?SpatialPolygons` to better understand their hierarchical structure.
 ```{r xscratchpol2, out.width="50%", tidy=FALSE}
 
 pol <- m %>% 
@@ -334,7 +333,6 @@ pol <- m %>%
      SpatialPolygons
 
 plot(pol,axes=TRUE)
-length(pol)
 
 ```
 
@@ -373,8 +371,6 @@ dim(cat)
 cat[1:3,]
 ```
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
 Columns of the attribute table can also be extracted just like in a `data.frame`.
 ```{r S4slots5}
 cat$Attack
@@ -388,14 +384,7 @@ The function `names` and the `$` applied on a spatial object behave the same way
 
 Names of the columns in the `data.frame` of attributes.
 ```{r S4names}
-names(x)
-```
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-Names of the different slots composing the object.
-```{r S4slots}
-slotNames(x)
+names(cat)
 ```
 
 Look at the attribute table which corresponds to a `data.frame`.
@@ -405,12 +394,17 @@ head(cat@data)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
+Names of the different slots composing the object.
+```{r S4slots}
+slotNames(cat)
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 Extract coordinates.
 ```{r S4slots3}
 head(cat@coords)
 ```
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 Slot containing the bounding box.
 ```{r S4slots4}
@@ -425,10 +419,10 @@ Build a `SpatialPointsDataFrame` with 100 random locations centered on Sherbrook
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-### -- Solution --
+<!-- ### -- Solution -- -->
 
-Here is a solution
-```{r ex00, out.width="70%"}
+<!-- Here is a solution -->
+```{r ex00, out.width="70%", echo=FALSE, include=FALSE}
 
 # Find coordinates using Google maps and generate random values for lat lon coordinates and an id
 n<-100
@@ -445,9 +439,9 @@ plot(d,axes=TRUE)
 
 ```
 
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<!-- <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br> -->
 
-```{r ex002, out.width="80%"}
+```{r ex002, out.width="80%", echo=FALSE, include=FALSE}
 # Write points to a shapefile
 writeOGR(d,dsn=".",layer="sherby",driver="ESRI Shapefile", overwrite_layer=TRUE)
 
@@ -460,9 +454,7 @@ list.files()
 
 ## Spatial operations
 
-Most spatial operations are done using the package `rgeos`. One of the requirement of functions in rgeos is that objects **need to be projected**. When objects are really large, some operations may start to take a long time (e.g. intersections with `gIntersection`).
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+Most spatial operations are done using the package `rgeos`. One of the requirement of functions in rgeos is that objects **need to be projected**.
 
 ### Overlay
 
@@ -493,7 +485,6 @@ As can be seen in the help files for `?over`, if the second object is a spatial 
 
 ```{r overlay3, fig.width=7,fig.height=4,out.width="100%"}
 
-# Returns the
 o<-over(x,pol)
 o
 
@@ -501,7 +492,6 @@ plot(x,axes=TRUE,xlim=c(-3,3),ylim=c(-3,3))
 plot(x[!is.na(o),],add=TRUE,col="red")
 plot(pol,add=TRUE)
 
-# Returns the
 o<-over(pol,x)
 o
 
@@ -642,13 +632,14 @@ Let's build the random buffers and see the results.
 ```{r over, fig.width=8,fig.height=7,out.width="60%",echo=TRUE}
 library(scales)
 set.seed(1234) # set the seed to obtain the same result each time
+n<-10
 b<-gEnvelope(roads) # determine the bounding box of the road system
-s<-spsample(b,n=10,type="random") # throw random points within the bounding box
-buffs<-gBuffer(s,width=10000,byid=TRUE) # turn the points to buffers
+s<-spsample(b,n=n,type="random") # throw random points within the bounding box
+buffs<-gBuffer(s,width=10000,byid=TRUE,id=1:n) # turn the points to buffers
 
 plot(b)
 plot(roads,add=TRUE,col=gray(0.7))
-plot(s,add=TRUE)
+text(coordinates(s),labels=names(buffs))
 plot(buffs,add=TRUE,border=NA,col=gray(0,0.1))
 ```
 
@@ -656,26 +647,27 @@ plot(buffs,add=TRUE,border=NA,col=gray(0,0.1))
 
 Extract all road sections that intersect with a buffer.
 
-```{r over2, fig.width=8,fig.height=7,out.width="60%",echo=-(1:10)}
+```{r over2, fig.width=8,fig.height=7,out.width="60%",echo=-(1:11)}
 <<over>>
 int<-gIntersection(buffs,roads,byid=TRUE)
-length(int)
 plot(int,col="red",lwd=4,add=TRUE)
 ```
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-The determine ther list of road section touching each buffer.
+Then determine the list of road sections touching each buffer.
 
-```{r over3, fig.width=8,fig.height=7,out.width="60%",echo=-(1:13)}
+```{r over3, fig.width=8,fig.height=7,out.width="60%",echo=-(1:13),fig.show="hide"}
 <<over2>>
 o<-over(buffs,int,returnList=TRUE)
 o
 ```
 
-Finally, calculate the total lengths of roads inside every buffer.
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-```{r over4, fig.width=8,fig.height=7,out.width="60%",echo=-(1:17)}
+Finally, calculate the total length of roads inside each buffer.
+
+```{r over4, fig.width=8,fig.height=7,out.width="60%",echo=-(1:14),results="hide"}
 <<over3>>
 dist<-sapply(o,function(i){
   sum(gLength(int[i],byid=TRUE))  
@@ -739,9 +731,9 @@ plot(h, col = "green4", border = NA, axes = TRUE)
 
 ```
 
-### -- Solution --
+<!-- ### -- Solution -- -->
 
-```{r ex0sol, echo=TRUE, tidy=FALSE, out.width="60%"}
+```{r ex0sol, echo=FALSE, include=FALSE, tidy=FALSE, out.width="60%"}
 
 # First throw 10 random points within the envelope of the landscape and then generates buffers around these points
 b<-h %>% 
@@ -788,11 +780,12 @@ plot(bick,axes=TRUE)
 ## Assign a CRS
 
 Assigning a coordinate reference system is done with the functions `CRS` (*C*oordinate *R*eference *S*ystem) and `proj4string`.
-```{r proj_assign}
+```{r proj_assign, fig.width=6.5,fig.height=4,out.width="70%"}
 
 proj4string(bick)
 proj4string(bick)<-CRS("+proj=longlat +datum=WGS84 +ellps=WGS84")
 proj4string(bick)
+plot(bick,axes=TRUE)
 
 ```
 
@@ -868,9 +861,9 @@ can<-raster::getData('GADM',country='CAN',level=1)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-### -- Solution --
+<!-- ### -- Solution -- -->
 
-```{r exAsol, out.width="60%", echo=TRUE, include=TRUE, fig.height=5, fig.width=5}
+```{r exAsol, out.width="60%", echo=FALSE, include=FALSE, fig.height=5, fig.width=5}
 
 # first set the seed from the random generator to get reproducible results 
 set.seed(123)
@@ -887,10 +880,12 @@ p<-spsample(can,n,type="random")
 # get buffers
 b<-gBuffer(p,width=200*1000,byid=TRUE)
 b<-SpatialPolygonsDataFrame(b,data.frame(id=1:n))
+
+# plot them
 plot(b,add=TRUE)
 text(coordinates(b),label=b$id)
 
-# build a data.frame to store values
+# build a data.frame to store each pairs
 e<-expand.grid(id1=b$id,id2=b$id)
 
 # compute the percent of overlap between each pair
@@ -898,10 +893,10 @@ o<-sapply(1:nrow(e),function(i){
   x1<-b[b$id==e[i,1],]
   x2<-b[b$id==e[i,2],]
   g<-gIntersection(x1,x2)
-  if(is.null(g)){
+  if(is.null(g)){ # if both buffers do not overlap, return 0
     0
   }else{
-    gArea(g)/gArea(x1)
+    gArea(g)/gArea(x1) # otherwise, return the proportion between the overlapping area and the given buffer
   }
   #  
 })
@@ -912,7 +907,7 @@ plot(e[,1],e[,2],cex=2*e$o,xlab="id 1",ylab="id 2",asp=1)
 
 ```
 
-This may not be the most efficient way. Using `gIntersection(b, b, byid = TRUE)` returns the 132 overlapping pairs faster, but ids need to be constructed to associate the different intersections to the correct pairs. Also, since the buffers all have the same dimension, we don't need the proportion of overlap for each ids as it is symmetric within each pair.  
+<!-- This is probably not the most efficient way. Using `gIntersection(b, b, byid = TRUE)` returns the 132 overlapping pairs faster, but ids need to be constructed to associate the different intersections to the correct pairs. Also, since the buffers all have the same dimension, we don't need the proportion of overlap for each ids as it is symmetric within each pair.   -->
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
@@ -926,7 +921,7 @@ library(raster)
 
 n<-200
 rast<-raster(nrow=n,ncol=n,ext=extent(canada))
-rast<-setValues(rast,runif(n^2))
+rast<-setValues(rast,runif(n^2,0,1))
 proj4string(rast)<-proj4string(canada)
 ncell(rast)
 plot(rast)
@@ -942,19 +937,6 @@ plot(canada,add=TRUE)
 
 ## Read and write
 
-```{r read_rast, out.width="70%"}
-
-r1<-raster("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data/cdem_dem_021E.tif")
-r2<-raster("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data/cdem_dem_031H.tif")
-
-par(mfrow=1:2)
-plot(r1)
-plot(r2)
-
-```
-
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
 Writing a raster to a file is done with the `writeRaster` function.
 
 ```{r write_rast, out.width="70%"}
@@ -966,9 +948,25 @@ list.files("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data")
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
+Reading can be done directly with the `raster` function (or the `stack` or `brick` functions).
+ 
+```{r read_rast, out.width="70%"}
+
+r1<-raster("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data/cdem_dem_021E.tif")
+r2<-raster("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data/cdem_dem_031H.tif")
+
+par(mfrow=1:2)
+plot(r1)
+plot(r2)
+
+```
+
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ## Aggregate, merge and crop
 
-Rasters can be aggregated and merged. An aggregation reduces the number of cells by a certain factor, while a merge bring two rasters together.
+Rasters can be aggregated, merged or cropped. An aggregation reduces the number of cells by a certain factor, while a merge brings two rasters together.
 ```{r merge, out.width="70%"}
 
 ncell(r1)
@@ -1031,6 +1029,17 @@ temp
 
 ### Extract
 
+Let's extract elevation data for the Bicknell's Thrush occurences we got previously.
+
+```{r extract0}
+
+plot(r)
+plot(bick,add=TRUE)
+
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 ```{r extract}
 
 e<-extract(r,bick)
@@ -1040,17 +1049,24 @@ hist(e,xlab="Altitude",main="")
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-#### Speeding things up with `velox`
+#### `velox`
 
-```{r velox}
+`velox` is an R package designed for faster extractions using C++ and rasters held in memory. For quicker extractions on relatively small datasets it can be much faster than the function `extract`.
+
+```{r velox0}
 library(velox)
 library(microbenchmark)
 
 rv<-velox(r)
 
-buff<-gBuffer(bick,byid=TRUE,width=0.025)
+buff<-gBuffer(bick,byid=TRUE,width=0.05)
 plot(r)
 plot(buff,add=TRUE)
+```
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+```{r velox1}
 
 system.time(extract(r,buff,fun=mean))
 system.time(rv$extract(buff,fun=mean))
@@ -1147,11 +1163,11 @@ plot(roads2,add=TRUE)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-### Random walk
+<!-- ### Random walk -->
 
-An example of extracting the distance to a road for each location of a random walk
+<!-- An example of extracting the distance to a road for each location of a random walk -->
 
-```{r rw, out.width="60%"}
+```{r rw, out.width="60%", eval=FALSE, echo=FALSE, include=FALSE}
 
 set.seed(123)
 
@@ -1207,11 +1223,13 @@ plot(pr)
 
 ### Polygonize a raster
 
+Turn all cells that are at least 25km from the roads to polygons.
+
 ```{r polygonize}
 
-pr<-rasterToPolygons(r,fun=function(x){x>700},dissolve=TRUE)
-plot(r)
-plot(pr,col="red",border=NA,add=TRUE)
+pr<-rasterToPolygons(rast,fun=function(x){x>25000},dissolve=TRUE)
+plot(rast)
+plot(pr,col="blue",border=NA,add=TRUE)
 
 ```
 
@@ -1244,9 +1262,9 @@ x<-as.data.frame(x$data)
 
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 
-### -- Solution --
+<!-- ### -- Solution -- -->
 
-```{r ex2sol, out.width="100%", dev.args=list(pointsize=9), echo=TRUE, include=TRUE}
+```{r ex2sol, out.width="100%", dev.args=list(pointsize=9), echo=FALSE, include=FALSE}
 
 # dowload climatic data
 r<-raster::getData('worldclim',var='bio',res=10)
@@ -1343,7 +1361,7 @@ ggspatial(meuse)
 
 ### `OpenStreetMap`
 
-```{r OSM}
+```{r OSM, fig.keep="last"}
 library(dismo)
 
 test<-gmap(meuse,type="roadmap",filename="map.gmap",scale=2)
