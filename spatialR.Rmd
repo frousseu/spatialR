@@ -1,17 +1,15 @@
 ---
-title:    |  
-      | INTRODUCTION TO    
-      | SPATIAL TASKS WITH R
+title: Spatial with R
 output:
   html_document:
     depth: 4
-    fig_height: 5
+    fig_height: 4
     fig_width: 6
-    number_sections: no
+    number_sections: yes
     toc: yes
     toc_depth: 5
     toc_float:
-      collapsed: yes
+      collapsed: no
       smooth_scroll: no
   beamer_presentation:
     colortheme: lily
@@ -32,48 +30,30 @@ output:
     toc: yes
     toc_depth: 4
 always_allow_html: yes
+editor_options: 
+  chunk_output_type: console
 ---
 
-<!-- <script> -->
-   <!-- $(document).ready(function() { -->
-     <!-- $head = $('#header'); -->
-     <!-- $head.prepend('<img src=\"cef.gif\" style=\"float: right;width: 75px;\"/>') -->
-   <!-- }); -->
-<!-- </script> -->
-
-
+```{=html}
 <script>
     $(document).ready(function() {
       $items = $('div#TOC li');
       $items.each(function(idx) {
         num_ul = $(this).parentsUntil('#TOC').length;
-        $(this).css({'text-indent': num_ul * 10, 'padding-left': 0, 'padding-bottom': 0, 'padding-top': 0});
+        $(this).css({'text-indent': num_ul * 20, 'padding-left': 0});
       });
+
     });
 </script>
+```
 
 
+```{=html}
 <style>
 
-hr {
-    display: block;
-    height: 00px;
-    border: 0;
-    border-top: 0px solid darkgreen;
-    border-bottom: 0px solid darkgreen;
-    margin: 1em 0;
-    padding-bottom: 0px;
-    padding-top: 0px;
-}
-
-
-div {
-    background-color: #EEEEEE!important;
-}
-
 pre.r {
-    background-color: #FFFFFF!important;
-    border-color: #FFFFFF!important;
+    background-color: #EEEEEE;
+    border-color: #EEEEEE;
     font-size: 12pt;
 }
 
@@ -82,770 +62,408 @@ pre code {
 }
 
 body {
-  font-size: 12pt;
+  font-size: 14pt;
+  margin-right: 5vw;
+  margin-left: 0vw;
+  /* max-width: 80vw; */
 }
 
 .main-container {
-    max-width: 1200px !important;
-}
+    max-width: 100vw !important;
+} 
 
 #TOC {
-  font-size: 10pt;
+  font-size: 0.75vw;
   border-color: white;
+  max-width: 12vw;
+  margin-top: 5vh;
 }
 
 .list-group-item.active:focus{
     z-index: 2;
     color: darkgreen;
-    background-color: #CCCCCC;
-    border-color: red;
-    font-weight: bolder;
-    font-color: red;
+    background-color: #EEEEEE;
+    /* font-weight: bolder; */
+    text-decoration: underline;
 }
 
 .list-group-item.active:hover {
     z-index: 2;
     color: darkgreen;
-    background-color: #EEEEEE;
-    border-color: red;
-    font-weight: bolder;
-    font-color: red;
+    background-color: #FFFFFF;
+    /* font-weight: bolder; */
+    text-decoration: underline;
 }
 
 .list-group-item.active{
     z-index: 2;
     color: darkgreen;
-    background-color: #EEEEEE;
-    border-color: red;
-    font-weight: bolder;
-    font-color: red;
+    background-color: #FFFFFF;
+    /* font-weight: bolder; */
+    text-decoration: underline;
 }
 
 h1.title {
-  margin-top: 120px;
-  font-size: 50px;
-  color: DarkRed;
-  font-weight: bold;
-}
-h1 {
-  padding-top: 10px;
+  margin-top: 50px;
   font-size: 42px;
   color: DarkGreen;
   font-weight: bold;
 }
-h2 {
-  padding-top: 10px;
-  font-size: 36px;
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 25vh;
+  padding-top: 40px;
+  padding-bottom: 20px;
   color: DarkGreen;
   font-weight: bold;
 }
 
-h3 {
-  padding-top: 10px;
-  font-size: 32px;
-  color: DarkGreen;
+h1, h2, h3, h4, h5 {
+  font-size: 42px;
+}
+
+a {
   font-weight: bold;
 }
-h4 {
-  font-size: 28px;
-  color: DarkGreen;
-  font-weight: bold;
+
+.pres { /* write {.pres} next to each section to apply css  */
+   padding-top: 100px;
+   margin-bottom: 700px;
 }
-h5 {
-  font-size: 26px;
-  color: DarkGreen;
-  font-weight: bold;
-}
+
+/* html{
+  scroll-behavior: smooth;
+} */
 
 
 </style>
+```
 
 
 ```{r options, include=TRUE, cache=FALSE, echo=FALSE, message=FALSE, eval=TRUE}
-options(width=70)
+options(width=90)
 knitr::opts_chunk$set(cache=TRUE,comment="##",eval=TRUE,error=TRUE,echo=TRUE,message=FALSE,warning=FALSE,tidy=TRUE,size="LARGE",fig.align="center",out.width="100%")
 
 ```
 
-<hr>
+<br>
 
 # INTRODUCTION
 
-The R spatial environment for manipulating spatial objects is mostly made of two suites of packages, one for vector data (or shapefiles) (**sp**, **rgdal**, **rgeos**) and one for raster data (**raster**). Vector data correspond to coordinates that make either points, lines or polygons, while raster data mostly correspond to regularly gridded data.
+The two most important R packages for manipulating spatial objects are:
+<br><br>
+[sf](https://r-spatial.github.io/sf) <br> 
+vectors, points, lines, polygons, shapefiles and geopackages
+<br><br>
+[terra](https://rspatial.github.io/terra/reference/terra-package.html)<br>
+rasters or regularly gridded data
+<br><br>
+You may see some code or package that still rely on the packages **sp**, **rgdal**, **rgeos** or **raster**, but these are now retired (for real!) and were entirely replaced by **sf** and **terra**.
+<br><br>
+Another important package is [stars](https://r-spatial.github.io/stars/) for spatiotemporal arrays and  raster and vector data cubes, but we won't talk about this package in this workshop.
 
-More recently, the new package **sf** (for simple features) has been developped to simplify and improve manipulations and operations on spatial vector data. Here, I've chosen to focus on spatial objects from the sp package as a lot of other packages cannot deal with sf objects yet. Also, once sp objects are understood, it is really straigthforward to move to using sf instead.
+<br>
 
-<hr>
+# TODO
 
-# SHAPEFILES
+- explain st_union
+- explain sf, sfc, sgpd st_as_sf, as_sfc
+- vect terra and sf
+- avoid reprojecting rasters (2 reasons)
+- base R pipe |>
 
-The main packages used for handling shapefiles and doing spatial operations are listed below.
 
-| Package | Use |
-| :-------------:|:----------------------------------------|
-| **sp** | Defines S4 spatial classes and methods for manipulating spatial objects |
-| **rgdal** | Provides bindings with the GDAL and PROJ.4 libraries for reading, projections, coordinate transformations, etc. |
-| **rgeos** | Provides bindings for the GEOS library for spatial operations (intersections, buffers, etc.) | 
-| **maptools** | Tools for reading and handling spatial objects | 
-| **sf** | New simpler S3 spatial classes and methods for manipulating spatial objects as simple features |
+# VECTOR DATA (sf)
 
-<hr>
-
-## Reading and writing
-
-### Reading
+## Reading
 
 First, let's look in the folder where the shapefile is located.
 
 ```{r read1, size="tiny"}
 
-list.files("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data")
+list.files("/home/frousseu/Documents/github/spatialR/data")
 
 ```
 
-<hr>
+<br>
 
-Reading shapefiles is done with the function `readOGR` from the `rgdal` package. 
+Reading shapefiles is done with the function `st_read`. 
 
 ```{r read2, size="tiny"}
 
-library(sp)
-library(rgdal)
-roads<-readOGR(dsn="C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data",layer="carreteras",encoding="UTF-8")
-class(roads)
+library(sf)
+
+roads <- st_read("/home/frousseu/Documents/github/spatialR/data/carreteras.shp")
 
 ```
 
-<hr>
+## Plot it
 
-This object can be simply plotted with the function `plot` which has a method for spatial objects.
+This object can be plotted simply with the function `plot` which has a method for sf objects. The `st_geometry` is used to only plot the geometry of the object, but not the attributes.
 ```{r read3, out.width="70%"}
-
-plot(roads,col=gray(0.75),lwd=4, axes=TRUE)
-
+plot(st_geometry(roads), col = gray(0.75), lwd = 4, axes = TRUE)
 ```
 
-<hr>
 
-What's contained in this object?
+## What exactly is the object `roads`?
 
 ```{r read4, out.width="70%"}
-
+class(roads)
 head(roads)
+```
+
+## Almost just a `data.frame`
+```{r read5, out.width="70%"}
+head(as.data.frame(roads))
+```
+
+
+## Plot attributes
+```{r read6, out.width="70%"}
+plot(roads, lwd = 4, axes = TRUE)
+```
+
+## vs. plot geometry
+```{r read7, out.width="70%"}
+plot(st_geometry(roads), lwd = 4, axes = TRUE)
+```
+
+
+## Interactive map
+Alternatively, you can use the [mapview](https://r-spatial.github.io/mapview/index.html) package for a more interactive plot.
+```{r read8, out.width="100%"}
+
+library(mapview)
+mapview(roads)
 
 ```
 
-<hr>
 
-### Writing
+## Writing
 
-
+We can write in different formats.
 ```{r write, eval=TRUE, tidy=TRUE}
+# As a shapefile
+st_write(roads, dsn = "/home/frousseu/Documents/github/spatialR/data/roads.shp", append = FALSE)
 
-writeOGR(roads,dsn="C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data",layer="test",driver="ESRI Shapefile",overwrite=TRUE)
-list.files("C:/Users/God/Documents/ML")
+# As a geopackage
+st_write(roads,dsn = "/home/frousseu/Documents/github/spatialR/data/roads.gpkg", append = FALSE)
 
+list.files("/home/frousseu/Documents/github/spatialR/data")
 ```
 
-<hr>
+<br>
 
 ## Building shapefiles
 
-### From a `data.frame`
-
 <!-- Let's load some data that contains locations of Jaguars attacks in the Kalakmul reserve in Mexico. Interviews were done with farmers about whether attacks from jaguars (or cougars) happened with their cattle.  -->
-
 
 ```{r shpdf1}
 
-cat<-read.table("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data/cat.txt",header=TRUE,stringsAsFactors=FALSE)
+cat <- read.table("/home/frousseu/Documents/github/spatialR/data/cat.txt", header = TRUE)
 head(cat)
 
 ```
 
 This is a simple `data.frame` with X and Y columns representing longitudes and latitudes. 
 
-<hr>
+<br>
 
-To transform this `data.frame` to a spatial object, we just have to do this:
+To transform this `data.frame` to a spatial object, we just have to do:
 
 ```{r shpdf2}
 
-library(sp)
-coordinates(cat)<-~X+Y
-class(cat)
+cat <- st_as_sf(cat, coords = c("X", "Y"), crs = 4326)
 
 ```
-The object returned is now a `SpatialPointsDataFrame`.
+The object returned is now an sf `data.frame`.
 
-<hr>
+<br>
+
+## Plot it
 
 Here is what it looks like.
 ```{r shpdf3, out.width="60%"}
 
-library(scales) # to use the alpha function for adding transparency
-
-plot(cat,col=alpha(ifelse(cat$Attack==0,"blue","red"),0.4),pch=16,cex=1.5,axes=TRUE)
-
-```
-
-<hr>
-
-### From scratch
-
-Shapefiles can also be built from scratch and turned to a spatial object with the `SpatialPointsDataFrame` function.
-
-```{r shpscratch, out.width="50%"}
-
-set.seed(123)
-n<-10
-x1<-rnorm(n,0,1)
-y1<-rnorm(n,0,1)
-id<-1:n
-x<-SpatialPointsDataFrame(cbind(x1,y1),data=data.frame(id))
-head(x)
-plot(x,axes=TRUE)
-
-```
-
-<hr>
-
-Creating a shapefile of polygons is slightly more complex and requires a couple more steps. We will first show the use of pipes ( `%>%` )from the **magrittr** package to make this easier. Pipes are used to apply a series of operations on an object. The first argument of a function in a pipe sequence is by default the result of the previous operation. It is meant to increase the readability of code.
-
-```{r magrittr, tidy=FALSE}
-
-library(magrittr)
-
-temp <- 1:10
-
-sum(rep(mean(temp), 50))
-
-temp %>% 
-mean %>% 
-rep(50) %>% 
-sum
-
-```
-
-<hr>
-
-To create a polygon, we need to have a matrix of points and in wich the first point is the same as the last to close the polygon.
-```{r xscratchpol1, out.width="50%", tidy=FALSE}
-
-m <- rbind(c(0, 0), c(0, 2), c(2, 2), c(3, 2), c(2, 1))
-m <- rbind(m, m[1, ])
-
-```
-
-Then we can use pipes to go through the series of steps to build a `SpatialPolygons`. Type `?SpatialPolygons` to better understand their hierarchical structure.
-```{r xscratchpol2, out.width="50%", tidy=FALSE}
-
-pol <- m %>% 
-     Polygon %>% 
-     list %>% 
-     Polygons(ID = 1) %>% 
-     list %>% 
-     SpatialPolygons
-
-plot(pol,axes=TRUE)
+plot(st_geometry(cat), col = adjustcolor(ifelse(cat$Attack == 0, "blue", "red"), 0.4), pch = 16, cex = 1.5, axes = TRUE)
 
 ```
 
 
-<hr>
 
-## Structure of spatial objects
 
-Spatial objects from the sp package are made with S4 classes. S4 classes are formal classes that can be tricky and hard to understand. Here, I won't go into the details of how S4 classes work, but I will describe the structure of spatial objects.
 
-```{r class}
-library(sp)
-getClass("Spatial")
 
-```
-
-<hr>
-
-### Indexing
-
-Spatial objects either come with or without attributes. For example, points can be stored in a `SpatialPoints` object or in a `SpatialPointsDataFrame` object. When spatial objects don't have attributes, they behave like vectors and can be indexed as such. Here, with a `SpatialPoints` object. 
-
-```{r index1}
-length(pol)
-dim(pol)
-pol[1]
-```
-
-<hr>
-
-When they have attributes (`SpatialPointsDataFrame`), they can be indexed just like a `data.frame`.
-
-```{r index2}
-length(cat)
-dim(cat)
-cat[1:3,]
-```
-
-Columns of the attribute table can also be extracted just like in a `data.frame`.
-```{r S4slots5}
-cat$Attack
-```
-
-<hr>
-
-### Accessing slots
-
-The function `names` and the `$` applied on a spatial object behave the same way as on a `data.frame`, while the `@` operator allows to extract objects stored in the slots of the object. Different methods are also available to extract different information from spatial objects such bounding boxes (`bbox`), centroid coordinates (`coordinates`), etc. Type `?Spatial` to learn more about them.
-
-Names of the columns in the `data.frame` of attributes.
-```{r S4names}
-names(cat)
-```
-
-Look at the attribute table which corresponds to a `data.frame`.
-```{r S4slots2}
-head(cat@data)
-```
-
-<hr>
-
-Names of the different slots composing the object.
-```{r S4slots}
-slotNames(cat)
-```
-
-<hr>
-
-Extract coordinates.
-```{r S4slots3}
-head(cat@coords)
-```
-
-Slot containing the bounding box.
-```{r S4slots4}
-cat@bbox
-```
-
-<hr>
 
 ## -- Exercice 1 --
 
-Build a `SpatialPointsDataFrame` with 100 random locations centered on Sherbrooke, plot the results and write the results to a shapefile. Hint: use the function `runif` or `rnorm` to generate random values within a given range.
+Build a spatial `data.frame` with 100 random locations centered on Sherbrooke, plot the results and write the results to a shapefile. Hint: use the function `runif` or `rnorm` to generate random values within a given range.
 
-<hr>
+<br>
 
-<!-- ### -- Solution -- -->
+### -- Solution
 
-<!-- Here is a solution -->
+Here is a solution
 ```{r ex00, out.width="70%", echo=FALSE, include=FALSE}
 
 # Find coordinates using Google maps and generate random values for lat lon coordinates and an id
-n<-100
-lon<-runif(n,-71.958,-71.822)
-lat<-runif(n,45.383,45.433)
+set.seed(1234)
+n<-50
+lon<-rnorm(n,-71.892, 0.04)
+lat<-rnorm(n, 45.401, 0.04)
 id<-1:n
 
 # Build a data.frame and turn it to a SpatialPointsDataFrame
-d<-data.frame(lon,lat,id)
-coordinates(d)<-~lon+lat
+x <- data.frame(lon,lat,id)
+x <- st_as_sf(x, coords=c("lon", "lat"), crs = 4326)
 
 # Plot the result
-plot(d,axes=TRUE)
+plot(st_geometry(x), axes = TRUE)
+
+# Alternatively, plot the results with mapview
+mapview(x)
+
+
 
 ```
 
-<!-- <hr> -->
+<br>
 
 ```{r ex002, out.width="80%", echo=FALSE, include=FALSE}
-# Write points to a shapefile
-writeOGR(d,dsn=".",layer="sherby",driver="ESRI Shapefile", overwrite_layer=TRUE)
 
-# Check if the shapefile has been written
-list.files()
+st_write(x, dsn = "/home/frousseu/Documents/github/spatialR/sherbrooke.gpkg", append = FALSE)
 
 ```
 
-<hr>
+<br>
 
-## Spatial operations
+# COORDINATE REFERENCE SYSTEM
 
-Most spatial operations are done using the package `rgeos`. One of the requirement of functions in rgeos is that objects **need to be projected**.
+```{r fig.width=6.5,fig.height=4,out.width="70%"}
 
-### Overlay
+quebec <- st_read("/home/frousseu/Documents/github/spatialR/québec.gpkg")
 
-The function over from package sp is used to determine whether different entities overlap. It returns a vector or a data.frame with the identities or the characteristics of overlapping elements.
+st_crs(quebec)
 
-```{r overlay1, fig.width=7,fig.height=4,out.width="100%"}
-
-plot(x,axes=TRUE,xlim=c(-3,3),ylim=c(-3,3))
-plot(pol,add=TRUE)
+par(mfrow = c(1,2))
+plot(st_geometry(quebec), axes = TRUE)
+quebec <- st_transform(quebec, 6622)
+plot(st_geometry(quebec), axes = TRUE)
 
 ```
 
 
-<hr>
+As always, when playing with spatial data, one needs to be aware of coordinate reference systems (CRS). Assigning and transforming CRS in sf can be done with the `st_transform` function. 
 
-The points are stored in a `SpatialPointsDataFrame` and the polygon in a `SpatialPolygons` object.
+## Red Trillium
 
-```{r overlay2, fig.width=7,fig.height=4,out.width="100%"}
+First, let's get some data from GBIF using the **rgbif** package. We will get occurrence data for a spring plant species, the Red Trillium (*Trille rouge*, *Trillium erectum*).
 
-class(x)
-class(pol)
+<img style="height: 300px; align: center;" src="https://inaturalist-open-data.s3.amazonaws.com/photos/342006400/medium.jpg">
 
-```
 
-<hr>
-
-As can be seen in the help files for `?over`, if the second object is a spatial object without attributes, a vector with the same length as the first element is returned with the first overlapping id in the second element.If the second element has attribute data, attribute data are returned.
-
-```{r overlay3, fig.width=7,fig.height=4,out.width="100%"}
-
-o<-over(x,pol)
-o
-
-plot(x,axes=TRUE,xlim=c(-3,3),ylim=c(-3,3))
-plot(x[!is.na(o),],add=TRUE,col="red")
-plot(pol,add=TRUE)
-
-o<-over(pol,x)
-o
-
-
-```
-
-<hr>
-
-### Cut or delimit
-
-Here are some common operations that can be done on points (but also on lines or on polygons). These operations are usually done using the package **rgeos**.
-
-```{r points_op, fig.width=7,fig.height=4,out.width="100%"}
-library(rgeos)
-
-# list of functions to apply
-op<-c("gCentroid","gEnvelope","gConvexHull","gBuffer","gDelaunayTriangulation")
-# set the graphic window
-par(mfrow=c(2,3),mar=c(0,0,3,0))
-# apply all operations
-for(i in seq_along(op)){
-  plot(x,main=op[i],xlim=c(-2,2),ylim=c(-3,3))
-  plot(get(op[i])(x),col=gray(0.5,0.5),add=TRUE,cex=3)
-}
-
-```
-
-<hr>
-
-Here are some common operations that are done on polygons.
-
-```{r polygons_op, fig.width=7, fig.height=4,out.width="100%"}
-
-# construct two buffers
-x1<-gBuffer(x[1,],width=1)
-x2<-gBuffer(x[2,],width=1)
-
-# list of functions to apply
-op<-c("gIntersection","gDifference","gSymdifference","gUnion")
-# set the graphic window
-par(mfrow=c(2,2),mar=c(0,0,3,0))
-# apply all operations
-for(i in seq_along(op)){
-  plot(x1,main=op[i],xlim=c(-2,2),ylim=c(-3,3))
-  plot(x2,add=TRUE)
-  plot(get(op[i])(x1,x2),add=TRUE,col="red")
-}
-
-```
-
-<hr>
-
-### Measure distances
-
-Here, let's measure the distance between each points and their centroid.
-```{r measure_distance, out.width="70%"}
-
-cx<-gCentroid(x)
-plot(x,axes=TRUE)
-plot(cx,add=TRUE,col="red",lwd=3)
-text(x,label=round(gDistance(x,cx,byid=TRUE),2),adj=c(0,1.3),cex=0.8)
-
-```
-
-<hr>
-
-### Measure areas
-
-Here, let's calculate the area of each polygon of a Delaunay triangulation. Also, let's use the `polygonsLabel` function from rgeos to plot the values in a good location in each polygon.
-```{r measure_area, fig.width=7,fig.height=5,out.width="90%"}
-
-ch<-gDelaunayTriangulation(x)
-area<-gArea(ch,byid=TRUE)
-plot(ch,axes=TRUE)
-invisible(polygonsLabel(ch,labels=round(area,2),cex=0.6,gridpoints=1000,method="centroid")) # plot are in each polygon
-
-```
-
-<hr>
-
-### Sample
-
-Sample points in polygons in different ways using the `spsample` function.
-
-```{r sample, fig.width=7,fig.height=5,out.width="70%"}
-
-set.seed(12345)
-
-n<-50
-
-# list sampling types
-type<-c("random","stratified","regular","hexagonal")
-
-# set graphic window
-par(mfrow=c(2,2),mar=c(0,0,2,0)) # build graphical display
-
-# plot the different sampling types
-for(i in seq_along(type)){
-  s<-spsample(pol,n,type=type[i])  # get random points
-  plot(pol,main=type[i],font=2) # plot polygon
-  plot(s,pch=1,add=TRUE) # plot random points
-}
-
-```
-
-<hr>
-
-Random points can also be distributed within random polygons
-```{r sample2, fig.width=7,fig.height=5,out.width="70%"}
-
-set.seed(12345)
-
-N<-10 # number of random polygons
-n<-5 # number of random points within each polygons
-
-plot(pol)
-# sample points and build buffers around them
-s1<-gBuffer(spsample(pol,N,type="random"),byid=TRUE,width=0.1) 
-# plot buffers
-plot(s1,add=TRUE) 
-# sample points in each polygon
-s2<-sapply(s1@polygons,spsample,n=n,type="random") 
-# bind points in the same spatial object
-s2<-do.call("rbind",s2) 
-# plot points
-plot(s2,add=TRUE)
-
-```
-
-<hr>
-
-### Combine operations
-
-Here is an example were we combine several operations to determine the length of roads within each random buffer in a region using the previous road data.
-
-Let's build the random buffers and see the results. 
-
-```{r over, fig.width=8,fig.height=7,out.width="60%",echo=TRUE}
-library(scales)
-set.seed(1234) # set the seed to obtain the same result each time
-n<-10
-b<-gEnvelope(roads) # determine the bounding box of the road system
-s<-spsample(b,n=n,type="random") # throw random points within the bounding box
-buffs<-gBuffer(s,width=10000,byid=TRUE,id=1:n) # turn the points to buffers
-
-plot(b)
-plot(roads,add=TRUE,col=gray(0.7))
-text(coordinates(s),labels=names(buffs))
-plot(buffs,add=TRUE,border=NA,col=gray(0,0.1))
-```
-
-<hr>
-
-Extract all road sections that intersect with a buffer.
-
-```{r over2, fig.width=8,fig.height=7,out.width="60%",echo=-(1:11)}
-<<over>>
-int<-gIntersection(buffs,roads,byid=TRUE)
-plot(int,col="red",lwd=4,add=TRUE)
-```
-
-<hr>
-
-Then determine the list of road sections touching each buffer.
-
-```{r over3, fig.width=8,fig.height=7,out.width="60%",echo=-(1:13),fig.show="hide"}
-<<over2>>
-o<-over(buffs,int,returnList=TRUE)
-o
-```
-
-<hr>
-
-Finally, calculate the total length of roads inside each buffer.
-
-```{r over4, fig.width=8,fig.height=7,out.width="60%",echo=-(1:14),results="hide"}
-<<over3>>
-dist<-sapply(o,function(i){
-  sum(gLength(int[i],byid=TRUE))  
-})
-text(coordinates(buffs),labels=round(dist/1000,1),col="black",adj=c(-1,-2))
-```
-
-<hr>
-
-<!-- ### Simplify things -->
-
-```{r simplify, out.width="50%", eval=FALSE, include=FALSE}
-
-n<-50
-x<-rnorm(n)
-y<-rnorm(n)
-poly<-gBuffer(SpatialPoints(cbind(x,y)),width=0.5)
-plot(poly)
-plot(gSimplify(poly,tol=0.6,topologyPreserve=TRUE),border="red",add=TRUE)
-
-```
-
-<hr>
-
-<!-- ### Rotate or MST -->
-
-<!-- ## Plotting -->
-
-<!-- ### plot -->
-
-```{r plot, out.width="50%", eval=FALSE, echo=FALSE}
-
-par(mar=c(0,0,0,0))
-plot(ch,border="red",col="blue",lwd=10)
-
-```
-
-<!-- ### spplot -->
-
-<!-- Do an spplot on something -->
-
-## -- Exercice 2 --
-
-Calculate the proportion of forest in 10 random buffers across a landscape. Let's first generate the landscape.
-
-```{r ex0, tidy=FALSE, out.width="60%"}
-
-set.seed(123)
-
-x<-runif(100, 0, 100) # generate random points
-y<-runif(100, 0, 100)
-
-h <- cbind(x, y) %>% # build a matrix
-     SpatialPoints %>% # turn it to spatial points  
-     gBuffer(width = rpois(length(x), 4), byid = TRUE) %>% # build random poisson buffers around them 
-     gEnvelope(byid = TRUE) %>% # take their envelope
-     gUnaryUnion # put them all in a single polygon
-     
-
-plot(h, col = "green4", border = NA, axes = TRUE)
-
-```
-
-<!-- ### -- Solution -- -->
-
-```{r ex0sol, echo=FALSE, include=FALSE, tidy=FALSE, out.width="60%"}
-
-# First throw 10 random points within the envelope of the landscape and then generates buffers around these points
-b<-h %>% 
-   gEnvelope %>% 
-   spsample(10, type = "random") %>% 
-   gBuffer(width = 10, byid = TRUE)
-
-# Plot the buffers
-plot(h, col = "green4", border = NA, axes = TRUE)
-plot(b, add = TRUE)
-
-# Intersect the buffers with the forest and plot the result
-int<-gIntersection(b, h, byid = TRUE)
-plot(int, add = TRUE, col = "red", border = NA)
-
-# Compute the proportion of forested areas within each buffer
-pa <- gArea(int, byid = TRUE) / gArea(b, byid = TRUE)
-
-# Add the value on the plot
-text(coordinates(b), label = round(pa, 2))
-
-```
-
-
-# COORD. REF. SYS.
-
-As always, when playing with spatial data, one needs to be aware of coordinate reference systems (CRS). Assigning and transforming CRS in R is not too difficult. It is mostly done with the `proj4string`, `CRS` and `spTransform` functions from the **rgdal** package. 
-
-First, let's get some data from GBIF using the **rgbif** package. We will get occurence data for a species of birds, the Bicknell's Thrush (*Catharus bicknelli*).
+## Occurrences from GBIF
 ```{r proj_data, fig.width=6.5,fig.height=4,out.width="70%"}
 
 library(rgbif)
 
-bick<-occ_search(scientificName="Catharus bicknelli",hasCoordinate=TRUE,country="CA")
-bick<-as.data.frame(bick$data)
-coordinates(bick)<-~decimalLongitude+decimalLatitude
-plot(bick,axes=TRUE)
+occs <- occ_search(scientificName = "Trillium erectum", hasCoordinate = TRUE, stateProvince = "Québec", country = "CA", limit = 5000)
+trille <- st_as_sf(occs$data, coords = c("decimalLongitude", "decimalLatitude"))
+plot(st_geometry(trille), axes = TRUE)
+st_crs(trille)
+
 
 ```
 
 
-<hr>
+<br>
 
-## Assign a CRS
+## Assign a CRS (*C*oordinate *R*eference *S*ystem)
 
-Assigning a coordinate reference system is done with the functions `CRS` (*C*oordinate *R*eference *S*ystem) and `proj4string`.
+Assigning a coordinate reference system can be done with the functions `st_crs` or it can be done when transforming a `data.frame` to a spatial `data.frame` with `st_as_sf`.
+
+See [https://epsg.io/](https://epsg.io/) to find CRS epsg's.
 ```{r proj_assign, fig.width=6.5,fig.height=4,out.width="70%"}
 
-proj4string(bick)
-proj4string(bick)<-CRS("+proj=longlat +datum=WGS84 +ellps=WGS84")
-proj4string(bick)
-plot(bick,axes=TRUE)
+st_crs(trille) <- 4326
+st_crs(trille)
+
+
+
+trille <- st_as_sf(occs$data, coords = c("decimalLongitude", "decimalLatitude"), crs = 4326)
+plot(st_geometry(trille), axes = TRUE)
 
 ```
 
-<hr>
+<br>
 
 ## Change a CRS
 
-```{r proj_change, fig.width=10, fig.height=6}
 
-#canada<-readOGR("C:/Users/rouf1703/Documents/UdeS/Formation/Canada",layer="Canada")
-library(raster)
+```{r proj_assign2, fig.width=6.5,fig.height=4,out.width="70%"}
 
-canada<-getData('GADM', country='CAN', level=1)
+# 32198 NAD83 / Quebec Lambert
+trille <- st_transform(trille, 32198)
+plot(st_geometry(trille), axes = TRUE)
 
-crs<-c("+proj=longlat +datum=WGS84 +ellps=WGS84",
-       "+proj=utm +zone=18 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0",
-       "+proj=utm +zone=10 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0",
-       "+proj=laea +lat_0=0 +lon_0=0 +ellps=GRS80")
 
-par(mfrow=c(2,2),mar=c(2,3,2,0))
+
+```
+
+## Use a common CRS
+
+When plotting or working with multiple spatial objects, the same CRS needs to be used!
+
+```{r proj_assign3, fig.width = 5, fig.height = 5, out.width = "60%"}
+
+
+trille <- st_transform(trille, st_crs(quebec))
+
+par(mar = c(0, 0, 0, 0))
+plot(st_geometry(quebec))
+plot(st_geometry(trille), add = TRUE)
+
+```
+
+
+## Multiple CRS
+
+```{r multiple_crs, fig.width=10, fig.height=6}
+
+library(geodata)
+library(rmapshaper)
+
+canada <- gadm('GADM', country='CAN', level=1) |> st_as_sf()
+canada <- ms_simplify(canada, 0.001)
+
+crs <- c(4326, 2958, 32198, 3995)
+
+par(mfrow = c(2, 2), mar = c(2, 3, 2, 0))
 
 for(i in 1:length(crs)){
-  canada2<-spTransform(canada,CRS(crs[i]))
-  plot(canada2,axes=TRUE,main=crs[i],cex.main=0.7)
+  canada2 <- st_transform(canada, crs = crs[i])
+  plot(st_geometry(canada2), axes = TRUE, main = paste("epsg", crs[i]), cex.main = 0.7)
 }
 
 
 ```
 
-<hr>
+<br>
 
 ## Geographic vs. Projected CRS
 
-Geographic coordinates are coordinates on a sphere or on an ellipse, while projected coordinates are defined on a flat 2D surface. Usually, geographic coordinates are in latitudes/longitudes and projected coordinates are in meters. As seen earlier, this is important when doing certain spatial operations. All functions from package rgeos require that spatial objects are projected. Otherwise, functions do not work properly because they assume that calculations are done on cartesian coordinates. Usually, a warning will be returned. 
+Geographic coordinates are coordinates on a sphere or on an ellipse, while projected coordinates are defined on a flat 2D surface. Usually, geographic coordinates are in latitudes/longitudes and projected coordinates are in meters. As seen earlier, this is important when doing certain spatial operations. All functions from package rgeos require that spatial objects are projected. Otherwise, functions often do not work properly because they assume that calculations are done on cartesian coordinates.
 
 ```{r proj_proj, fig.width=10, fig.height=6}
 
-bbox(canada)
+st_bbox(canada)
 
-bbox(spTransform(canada,CRS(crs[2])))
+st_bbox(st_transform(canada, crs[3]))
 
 ```
 
 
-<hr>
+<br>
 
 ## CRS and EPSG
 
@@ -853,32 +471,40 @@ Projections can also be given with their [EPSG](http://www.epsg-registry.org/) c
 
 ```{r proj_epsg}
 
-canada2<-spTransform(x,CRS("+init=epsg:4326"))
-proj4string(canada2)
+#canada2<-spTransform(x,CRS("+init=epsg:4326"))
+#proj4string(canada2)
 
 ```
 
 The EPSG code 4326 is equivalent to giving the `"+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"` CRS to the data.
  
-<hr>
+<br>
 
-## -- Exercice 3 --
+## -- Exercice 2 --
+
+Play with crs exercice
+
+
+
+## -- Exercice 2 --
 
 Generate a set of 50 200km random buffers across Canada and measure the proportion of overlap between **each pair** of buffers.
 
-*Note: The `width` argument in gBuffer takes the values in the coordinate reference system. If coordinates are in latlon, a value of 1 means 1 degre. If values are in meters, a value of 1 means 1 meter.*
+*Note: The `dist` argument in st_buffer takes the values in the coordinate reference system. If coordinates are in lat/lon, a value of 1 means 1 degre. If values are in meters, a value of 1 means 1 meter. It is better to work in meters with a projected system*
 
 ```{r exA, eval=FALSE}
 
-can<-raster::getData('GADM',country='CAN',level=1)
+library(geodata)
+can <- gadm('GADM', country = 'CAN', level = 1) |> st_as_sf()
 
 ```
 
-<hr>
+<br>
 
 <!-- ### -- Solution -- -->
 
-```{r exAsol, out.width="60%", echo=FALSE, include=FALSE, fig.height=5, fig.width=5}
+<!--- NEEDS TO FIX THIS!!!!!!!! -->
+```{r exAsol, out.width="60%", echo=FALSE, eval = FALSE, include=FALSE, fig.height=5, fig.width=5}
 
 # first set the seed from the random generator to get reproducible results 
 set.seed(123)
@@ -924,27 +550,420 @@ plot(e[,1],e[,2],cex=2*e$o,xlab="id 1",ylab="id 2",asp=1)
 
 <!-- This is probably not the most efficient way. Using `gIntersection(b, b, byid = TRUE)` returns the 132 overlapping pairs faster, but ids need to be constructed to associate the different intersections to the correct pairs. Also, since the buffers all have the same dimension, we don't need the proportion of overlap for each ids as it is symmetric within each pair.   -->
 
-<hr>
+<br>
 
-# RASTERS
 
-## What is a raster?
 
-A raster is a regular grid of pixel with values. Here is an example of building a simple raster with random values.
-```{r buildrastersimple}
-library(raster)
 
-n<-200
-rast<-raster(nrow=n,ncol=n,ext=extent(canada))
-rast<-setValues(rast,runif(n^2,0,1))
-proj4string(rast)<-proj4string(canada)
-ncell(rast)
-plot(rast)
-plot(canada,add=TRUE)
+
+## Spatial operations
+
+Most spatial operations are available in the package `sf`. One of the requirement for functions to work well for spatial operations in `sf` is that objects **are in a projected coordinate system**.
+
+```{r quebec, include = FALSE}
+
+library(geodata)
+library(rmapshaper)
+
+
+canada <- gadm("CAN", level = 1, path = "Canada") |> st_as_sf()
+canada <- ms_simplify(canada, 0.001)
+
+st_write(canada, "/home/frousseu/Documents/github/spatialR/canada.gpkg", append = FALSE)
+
+st_write(canada[canada$NAME_1=="Québec",], "/home/frousseu/Documents/github/spatialR/québec.gpkg", append = FALSE)
+
+qc <- gadm("CAN", level = 2, path = "Québec") |> st_as_sf() 
+sherbrooke <- qc[qc$NAME_1 == "Québec" & qc$NAME_2 == "La Région-Sherbrookoise", ]  
+st_write(sherbrooke, "/home/frousseu/Documents/github/spatialR/sherbrooke.gpkg", append = FALSE)
 
 ```
 
-<hr>
+
+### Intersections
+
+The function over from package sp is used to determine whether different entities overlap. It returns a vector or a data.frame with the identities or the characteristics of overlapping elements.
+
+```{r overlay1, fig.width=7,fig.height=4,out.width="100%"}
+
+
+sherbrooke <- st_read("/home/frousseu/Documents/github/spatialR/sherbrooke.gpkg")
+
+
+#x <- st_sample(sherbrooke, 25, type = "random") |> st_as_sf()
+
+plot(st_geometry(sherbrooke))
+plot(st_geometry(x), add = TRUE)
+
+mapview(sherbrooke)+mapview(x)
+
+xin <- x[sherbrooke,]
+
+s <- lengths(st_intersects(x, sherbrooke))
+xout <- x[s == 0, ]
+
+plot(st_geometry(sherbrooke))
+plot(st_geometry(xin), pch = 16, col = "red", add = TRUE)
+plot(st_geometry(xout), pch = 16, col = "blue", add = TRUE)
+
+
+
+```
+
+
+<br>
+
+The points are stored in a `SpatialPointsDataFrame` and the polygon in a `SpatialPolygons` object.
+
+```{r overlay2, fig.width=7,fig.height=4,out.width="100%"}
+
+class(x)
+class(sherbrooke)
+
+```
+
+<br>
+
+<!-- As can be seen in the help files for `?over`, if the second object is a spatial object without attributes, a vector with the same length as the first element is returned with the first overlapping id in the second element.If the second element has attribute data, attribute data are returned. -->
+
+<br>
+
+
+```{r points_op, fig.width=7,fig.height=4,out.width="100%", eval = FALSE, include = FALSE}
+
+# list of functions to apply
+op<-c("st_centroid","st_concave_hull","st_convex_hull","st_buffer","st_voronoi")
+# set the graphic window
+par(mfrow=c(2,3),mar=c(0,0,3,0))
+# apply all operations
+for(i in seq_along(op)){
+  plot(x,main=op[i],xlim=c(-2,2),ylim=c(-3,3))
+  plot(get(op[i])(x),col=gray(0.5,0.5),add=TRUE,cex=3)
+}
+
+```
+
+### Operations on points
+
+Here are some common operations that can be done on points (but also on lines or on polygons). 
+
+```{r points_op2, fig.width = 7, fig.height = 6, out.width="100%"}
+
+x <- st_transform(x, 32198)
+
+par(mfrow=c(2,3),mar=c(0,0,3,0))
+
+x2 <- st_union(x) |>
+        st_centroid() |>
+        st_geometry()
+
+plot(st_geometry(x), main = "st_centroid")
+plot(x2, pch = 16, cex = 2, col = "red", add = TRUE)
+
+x2 <- st_union(x) |>
+        st_convex_hull() |>
+        st_geometry()
+
+plot(st_geometry(x), main = "st_convex_hull")
+plot(x2, pch = 16, cex = 3, border = "red", add = TRUE)
+
+x2 <- st_union(x) |>
+        st_concave_hull(ratio = 0.30) |>
+        st_geometry()
+
+plot(st_geometry(x), main = "st_concave_hull")
+plot(x2, pch = 16, cex = 3, border = "red", add = TRUE)
+
+x2 <- st_buffer(x, dist = 2000) |>
+        st_geometry()
+
+plot(st_geometry(x), main = "st_buffer on each point")
+plot(x2, pch = 16, cex = 3, border = "red", add = TRUE)
+
+x2 <- st_union(x) |>
+        st_buffer(dist = 2000) |>
+        st_geometry()
+
+plot(st_geometry(x), main = "st_buffer on all points")
+plot(x2, pch = 16, cex = 3, border = "red", add = TRUE)
+
+```
+
+<br>
+
+### Operations on polygons
+
+Here are some common operations that are done on polygons.
+
+```{r polygons_op, fig.width=7, fig.height=6, out.width = "100%"}
+
+# construct two buffers
+x1 <- st_buffer(x[38, ], dist = 2000)
+x2 <- st_buffer(x[23, ], dist = 2000)
+
+# list of functions to apply
+op <- c("st_intersection", "st_difference", "st_sym_difference", "st_union")
+# set the graphic window
+par(mfrow = c(2, 2),mar = c(0, 0, 3, 0))
+
+limits <- st_union(x1, x2) |> st_bbox()
+xlim <- limits[c(1, 3)]
+ylim <- limits[c(2, 4)]
+
+for(i in seq_along(op)){
+  plot(st_geometry(x1), main = op[i], xlim = xlim, ylim = ylim)
+  plot(st_geometry(x2), add = TRUE)
+  plot(st_geometry(get(op[i])(x1, x2)), add = TRUE, col = "forestgreen")
+}
+
+```
+
+<br>
+
+### Measure distances
+
+Here, let's measure the distance between each points and their centroid.
+```{r measure_distance, out.width="70%"}
+
+cx <- st_union(x) |> st_centroid()
+plot(st_geometry(x), axes = TRUE)
+plot(st_geometry(cx), add = TRUE, col = "red", pch = 16, lwd = 3)
+text(st_coordinates(x), label = round(as.numeric(st_distance(x, cx))/1000, 1), adj = c(-0.5, 1.5), cex = 0.6)
+mtext(side = 3, line = 0, text = "Distance in km from centroid", ad = 0.98)
+
+```
+ 
+
+### Measure areas
+
+```{r measure_area, fig.width=7,fig.height=5,out.width="90%"}
+
+set.seed(123)
+
+pol <- st_buffer(x[1:2, ], dist = runif(nrow(x[1:2, ]), 1000, 3000))
+area <- st_area(pol)
+plot(st_geometry(pol), axes = TRUE)
+text(st_coordinates(st_centroid(pol)), label = paste(round(as.numeric(area)/1000),"km"))
+
+```
+
+<br>
+
+### Sample
+
+Sample points in polygons in different ways using the `st_sample` function.
+
+```{r sample, fig.width=7,fig.height=5,out.width="70%"}
+
+set.seed(12345)
+n<-20
+type<-c("random","regular","hexagonal") # list sampling types
+par(mfrow = c(2, 2), mar = c(0, 0, 2, 0)) # set graphic window
+
+# plot the different sampling types
+for(i in seq_along(type)){
+  s <- st_sample(pol, n, type = type[i])  # get random points
+  plot(st_geometry(pol), main = type[i], font = 2) # plot polygon
+  plot(st_geometry(s), pch = 1, add = TRUE) # plot random points
+}
+s <- st_sample(pol, rep(n, nrow(pol)), type = type[1])  # get random points
+plot(st_geometry(pol), main = type[1], font = 2) # plot polygon
+plot(st_geometry(s), pch = 1, add = TRUE) # plot random points
+
+```
+
+
+<!-- Random points can also be distributed within random polygons 
+```{r sample2, fig.width=7,fig.height=5,out.width="70%", eval = FALSE, include = FALSE}
+
+set.seed(12345)
+
+N<-10 # number of random polygons
+n<-5 # number of random points within each polygons
+
+plot(pol)
+# sample points and build buffers around them
+s1<-gBuffer(spsample(pol,N,type="random"),byid=TRUE,width=0.1) 
+# plot buffers
+plot(s1,add=TRUE) 
+# sample points in each polygon
+s2<-sapply(s1@polygons,spsample,n=n,type="random") 
+# bind points in the same spatial object
+s2<-do.call("rbind",s2) 
+# plot points
+plot(s2,add=TRUE)
+
+```
+-->
+
+<br>
+
+### Combine operations
+
+Here is an example were we combine several operations to determine the length of roads within each random buffer in a region using the previous road data.
+
+Let's build the random buffers and see the results. 
+
+```{r over, fig.width=8,fig.height=7,out.width="60%",echo=TRUE}
+set.seed(1234) # set the seed to obtain the same result each time
+n <- 10
+b <- st_convex_hull(st_union(roads)) # determine the bounding box of the road system
+s <- st_sample(b, n, type = "random") # throw random points within the bounding box
+buffs <- st_buffer(s, dist = 10000) # turn the points to buffers
+
+plot(st_geometry(b), axes = TRUE)
+plot(st_geometry(roads), col = gray(0.7))
+text(st_coordinates(s), labels = names(buffs))
+plot(buffs, add = TRUE, border = NA, col = gray(0,0.1))
+```
+
+<br>
+
+Extract all road sections that intersect with a buffer.
+
+```{r over2, fig.width=8,fig.height=7,out.width="60%",echo=-(1:11)}
+<<over>>
+int <- st_intersection(buffs, roads, byid = TRUE)
+plot(int, col = "red", lwd = 4, add = TRUE)
+```
+
+<br>
+
+Then determine the list of road sections touching each buffer.
+
+```{r over3, fig.width=8,fig.height=7,out.width="60%",echo=-(1:13),fig.show="hide"}
+<<over2>>
+o <- st_intersects(buffs, int)
+o
+```
+
+<br>
+
+Finally, calculate the total length of roads inside each buffer.
+
+```{r over4, fig.width=8,fig.height=7,out.width="60%",echo=-(1:14),results="hide"}
+<<over3>>
+dist <- sapply(o, function(i){
+  sum(st_length(int[i]))  
+})
+text(st_coordinates(st_centroid(buffs)), labels = round(dist/1000,1), col = "black", adj = c(-0.75,-1.5), xpd = TRUE, cex = 0.8)
+```
+
+<br>
+
+<!-- ### Simplify things -->
+
+```{r simplify, out.width="50%", eval=FALSE, include=FALSE}
+
+plot(st_geometry(canada))
+plot(st_geometry(st_simplify(canada, preserveTopology = TRUE, dTolerance = 50000)), border = "red", add = TRUE)
+
+ms_simplify(canada, 0.2) |>
+  st_geometry() |>
+  plot()
+
+```
+
+<br>
+
+<!-- ### Rotate or MST -->
+
+<!-- ## Plotting -->
+
+<!-- ### plot -->
+
+
+```{r plot, out.width="50%", eval=FALSE, echo=FALSE}
+
+```
+
+
+
+
+
+```{r plot2, out.width="50%", eval=FALSE, echo=FALSE}
+
+par(mar=c(0,0,0,0))
+plot(ch,border="red",col="blue",lwd=10)
+
+```
+
+<!-- ### spplot -->
+
+<!-- Do an spplot on something -->
+
+## -- Exercice 3 --
+
+Calculate the proportion of forest in 10 random buffers across a landscape. Let's first generate the landscape.
+
+```{r ex0, tidy=FALSE, out.width="60%"}
+
+set.seed(123)
+
+#x<-runif(100, -74, -71) # generate random points
+#y<-runif(100, 45, 47)
+
+
+h <- x |> # turn it to spatial points 
+     st_as_sfc() |> 
+     st_buffer(dist = 300 * rgamma(nrow(x), 2, 1)) |> # build random gamma buffers around them 
+     lapply(function(i){st_as_sfc(st_bbox(i))}) |>
+     do.call("c", args = _) |>
+     st_union() # put them all in a single polygon
+   
+plot(h, col = "green4", border = NA, axes = TRUE)
+
+```
+
+<!-- ### -- Solution -- -->
+
+```{r ex0sol, echo=FALSE, include=FALSE, tidy=FALSE, out.width="60%"}
+
+# First throw 10 random points within the envelope of the landscape and then generates buffers around these points
+b <- st_convex_hull(h) |>
+     st_sample(10, type = "random") |>
+     st_buffer(dist = 1000)
+
+
+# Plot the buffers
+plot(h, col = "green4", border = NA, axes = TRUE)
+plot(b, add = TRUE)
+
+# Intersect the buffers with the forest and plot the result
+cuts <- st_intersection(b, h)
+plot(cuts, add = TRUE, col = "red", border = NA)
+
+int <- lengths(st_intersects(b,h))
+
+ifelse(int, 0, st_area(cuts) / st_area(b))
+
+# Compute the proportion of forested areas within each buffer
+#pa <- gArea(int, byid = TRUE) / gArea(b, byid = TRUE)
+
+# Add the value on the plot
+#text(coordinates(b), label = round(pa, 2))
+
+```
+
+
+# RASTERS (terra)
+
+## What is a raster?
+
+A raster is a regular grid of pixel with values. Here is an example of building a simple raster with random values using the [`terra`](https://rspatial.github.io/terra/) package.
+```{r buildrastersimple}
+library(terra)
+
+n <- 200
+r <- rast(nrow = n, ncol = n, ext = ext(canada), crs = crs(canada))
+r <- setValues(r, runif(n^2, 0, 1))
+ncell(r)
+plot(r)
+plot(st_geometry(canada), add = TRUE)
+
+```
+
+<br>
 
 <!-- ## Raster formats -->
 
@@ -956,19 +975,19 @@ Writing a raster to a file is done with the `writeRaster` function.
 
 ```{r write_rast, out.width="70%"}
 
-writeRaster(rast,"C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data/rast.tif",overwrite=TRUE)
-list.files("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data")
+writeRaster(r, "/home/frousseu/Documents/github/spatialR/data/rast.tif", overwrite = TRUE)
+list.files("/home/frousseu/Documents/github/spatialR/data")
 
 ```
 
-<hr>
+<br>
 
-Reading can be done directly with the `raster` function (or the `stack` or `brick` functions).
+Reading can be done directly with the `rast` function.
  
 ```{r read_rast, out.width="70%"}
 
-r1<-raster("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data/cdem_dem_021E.tif")
-r2<-raster("C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/data/cdem_dem_031H.tif")
+r1 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_021E.tif")
+r2 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031H.tif")
 
 par(mfrow=1:2)
 plot(r1)
@@ -977,7 +996,7 @@ plot(r2)
 ```
 
 
-<hr>
+<br>
 
 ## Aggregate, merge and crop
 
@@ -986,124 +1005,154 @@ Rasters can be aggregated, merged or cropped. An aggregation reduces the number 
 
 ncell(r1)
 
-r1<-aggregate(r1,fact=10)
-r2<-aggregate(r2,fact=10)
+r1 <- aggregate(r1, fact = 10)
+r2 <- aggregate(r2, fact = 10)
 
 ncell(r1)
 
-r<-merge(r1,r2)
+r <- merge(r1, r2) # mosaic could also be used if rasters overlap
 plot(r)
 
 ```
 
-<hr>
+<br>
 
 Rasters can be cropped with a specific region using the `extent` argument.
 ```{r crop, out.width="70%"}
 
-e <- extent(-72.75, -70.25, 45, 46)
+e <- ext(-72.75, -70.25, 45, 46)
 r <- crop(r, e)
 plot(r)
 
+crop(r, sherbrooke) |>
+  plot()
+
+crop(r, sherbrooke) |>
+  mask(sherbrooke) |>
+  plot()
+
+
 ```
 
-<hr>
+<br>
 
-## Layers, stacks and bricks
+## Dimensions and memory
 
 Rasters can have a single layer (`RasterLayer`) or multiple layers (`RasterStack`, `RasterBrick`). 
 
 ```{r stack1}
 
 r
+dim(r)
+ncell(r)
+nlyr(r)
+inMemory(r)
 
 ```
 
-<hr>
+<br>
 
-Let's get some data from the worldclim database to see what a stack looks like.
+## Cropping and masking
 ```{r stack2, out.width="90%",fig.height=5, fig.width=7}
 
-temp<-raster::getData('worldclim',var='tmean',res=10)
-temp
-plot(temp/10) # the dot is not included before the decimal so we need to divide by 10 to get the real value
+lc <- rast("WorldCover_trees_30s.tif")
+inMemory(lc)
+
+f <- crop(lc, canada) # crop to Canada extent
+plot(f)
+f <- mask(f, canada) # mask to the Canada geometry
+plot(f)
+f <- crop(lc, canada, mask = TRUE) # crop and mask to Canada extent
+plot(f)
+
 
 ```
 
-<hr>
-```{r brick}
+## Projecting
+```{r stack2, out.width="90%",fig.height=5, fig.width=7}
 
-temp<-brick(temp)
-temp
+f <- project(lc, r) 
+f <- mask(f, r)
 
 ```
 
-<hr>
+<br>
+
+## A note on reprojecting rasters
+
+
+
+
 
 ## Raster operations
 
 ### Extract
 
-Let's extract elevation data for the Bicknell's Thrush occurences we got previously.
+Let's extract elevation data for the Bicknell's Thrush occurrences we got previously.
 
 ```{r extract0}
 
 plot(r)
-plot(bick,add=TRUE)
+trille <- st_transform(trille, st_crs(r))
+trille$date <- format(as.Date(trille$eventDate),"%m-%d")
+trille <- trille[trille$date >= "06-20" & trille$date <= "08-01", ]
+plot(st_geometry(trille), add = TRUE)
 
 ```
 
-<hr>
+<br>
 
 ```{r extract}
 
-e<-extract(r,bick)
-hist(e,xlab="Altitude",main="")
+e <- extract(r, trille)
+head(e)
+r
+hist(e[, 2] , xlab = "Altitude", main = "")
 
 ```
 
-<hr>
+<br>
 
-#### `velox`
+#### `exactextractr`
 
 `velox` is an R package designed for faster extractions using C++ and rasters held in memory. For quicker extractions on relatively small datasets it can be much faster than the function `extract`.
 
-```{r velox0}
-library(velox)
+```{r velox0, eval = FALSE, include = FALSE}
+library(exactextractr)
 library(microbenchmark)
 
-rv<-velox(r)
 
-buff<-gBuffer(bick,byid=TRUE,width=0.05)
-plot(r)
-plot(buff,add=TRUE)
+buff <- st_buffer(trille, dist = 500)
+elev <- crop(r, ext(-71.23, -70.7, 45.2, 45.5))
+plot(elev)
+plot(st_geometry(buff), add = TRUE)
 ```
 
-<hr>
+<br>
 
-```{r velox1}
+```{r velox1, eval = FALSE}
 
-system.time(extract(r,buff,fun=mean))
-system.time(rv$extract(buff,fun=mean))
+system.time(extract(r, buff , fun = mean, exact = TRUE))
+system.time(exact_extract(r, buff , fun = "mean"))
 
 ```
 
-<hr>
+<br>
 
 ### Reclassify
 
 ```{r reclassify}
 
-mn<-c(0,100,200,400,600,800)
-mx<-c(100,200,400,600,800,1200)
-mat<-cbind(mn,mx,lab=mx)
+mn <- c(0, 100, 200, 400, 600, 800) # min
+mx <- c(100, 200, 400, 600, 800, 1200) # max
+mat <- cbind(mn, mx,lab = mx)
 mat
-rc<-reclassify(r,mat)
-plot(rc,col=terrain.colors(nrow(mat)))
+rc <- classify(r, mat)
+plot(rc, col = terrain.colors(nrow(mat)))
 
 ```
 
-br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br>
 
 ### Rasterize
 
@@ -1111,30 +1160,31 @@ Here is an example of building a raster where each pixel value is determined by 
 
 ```{r buildrastercomplex2}
 
-rbick<-raster(ncol=30,nrow=30,ext=extent(bick))
+rtrille <- rast(resolution = 50000, ext = ext(trille))
 
-rbick<-rasterize(bick,rbick,field=1,fun="count",background=0)
+rtrille <- rasterize(trille, rtrille, field = 1, fun = "count", background = 0)
 
-rbick[rbick==0]<-NA # replace cells with 0 observation with NA's to better visualize data
+rtrille[rtrille == 0] <- NA # replace cells with 0 observation with NA's to better visualize data
 
-rbick
+rtrille
 
 ```
 
-<hr>
+<br>
 
 Now let's plot the results.
 ```{r buildrastercomplex3, out.width="60%"}
 
-plot(bick,col="white") # first plot white points to get the correct extent around locations
-plot(rbick,col=rev(heat.colors(100)),add=TRUE,legend.args=list(text='Nb of obs.',side=3,line=0.25),horizontal=TRUE)
-plot(canada,border=gray(0.7),add=TRUE)
-box()
+
+plot(rtrille)
+plot(st_geometry(trille), col = gray(0, 0.25), add = TRUE) 
+plot(st_geometry(st_transform(canada, st_crs(trille))), add = TRUE)
+
 
 ```
 
 
-<hr>
+<br>
 
 ### Build a rasters from distances
 
@@ -1145,38 +1195,38 @@ Measure distances from roads and store the values in a raster.
 library(RColorBrewer)
 library(FRutils)
 
-roads2<-spTransform(roads,CRS("+proj=utm +zone=18 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"))
-rast<-raster(ncol=200,nrow=200,ext=extent(roads2))
-rast_centroids<-xyFromCell(rast,1:ncell(rast),spatial=TRUE)
-g<-gDistance(rast_centroids,gLineMerge(roads2),byid=TRUE)
+roads2 <- st_transform(roads, 32198)
+r <- rast(resolution = 1000, ext= ext(roads2))
+rcentroids <- xyFromCell(r, 1:ncell(r)) |>
+  as.data.frame() |>
+  st_as_sf(coords = c("x", "y"), crs = st_crs(roads2))
+g <- st_distance(rcentroids, st_union(roads2))
 
 class(g)
 dim(g)
 
-rast<-setValues(rast,g[1,])
-val<-pretty(seq(min(minValue(rast)),max(maxValue(rast)),length.out=100),10)
+r <- setValues(r, g[, 1])
 
-lab<-list(at=val,labels=val)
-plot(rast,col=colo.scale(1:99,rev(brewer.pal(9,"YlOrRd"))),breaks=99,axis.args=lab)
-plot(roads2,add=TRUE)
+plot(r)
+plot(st_geometry(roads2), add = TRUE)
 
 ```
 
-<hr>
+<br>
 
 ### Rasterize with lengths
 
-An example on using rasterize to compute the length of roads within each pixel of a raster.
+An example on using rasterizeGeom to compute the length of roads within each pixel of a raster.
 
 ```{r road_density, out.width="60%"}
 
-test<-rasterize(roads2,aggregate(rast,10),fun="length")
+test <- rasterizeGeom(vect(roads2), aggregate(r, 10), fun = "length")
 plot(test)
-plot(roads2,add=TRUE)
+plot(st_geometry(roads2), add = TRUE)
 
 ```
 
-<hr>
+<br>
 
 <!-- ### Random walk -->
 
@@ -1186,30 +1236,32 @@ plot(roads2,add=TRUE)
 
 set.seed(123)
 
-n<-1000
-e<-extent(rast)
+n <- 1000
+e <- extent(r)
 
-x<-c(extent(rast)[1])+cumsum(rnorm(n,0,2000)+500)
-y<-c(extent(rast)[3])+cumsum(rnorm(n,0,2000)+500)
+x<-c(ext(r)[1]) + cumsum(rnorm(n, 0, 2000) + 500)
+y<-c(ext(r)[3]) + cumsum(rnorm(n, 0, 2000)+ 500)
 
-l<-Line(cbind(x,y)) %>% 
-  list %>% 
-  Lines(ID = 1) %>% 
-  list %>% 
-  SpatialLines
+rw <- data.frame(x, y) |>
+        st_as_sf(coords = c("x", "y"), crs = st_crs(r)) |>
+        st_combine() |>
+        st_cast("LINESTRING") |>
+        st_as_sf()
 
-plot(rast,col=colo.scale(1:99,rev(brewer.pal(9,"YlOrRd"))),breaks=99,axis.args=lab)
-plot(roads2,add=TRUE)
-plot(l,add=TRUE,col="blue",lwd=2)
 
-e<-extract(rast,l)
 
-hist(e[[1]])
+plot(r)
+plot(st_geometry(roads2), add = TRUE)
+plot(rw, add = TRUE, col = "red", lwd = 2)
+
+e <- extract(r, rw)
+
+hist(e[, 2])
 
 
 ```
 
-<hr>
+<br>
 
 ### Contours
 
@@ -1217,24 +1269,33 @@ Convert rasters values to contours in a SpatialLines object.
 
 ```{r raster2cont, out.width="70%"}
 
-con<-rasterToContour(rast)
+con <- as.contour(r)
 con
-plot(rast)
-plot(con,add=TRUE)
+plot(r)
+plot(con, add = TRUE)
 
 ```
 
 <!-- ### Rasterizing a polygon -->
 
 ```{r rasterizepol, out.width="70%", eval=FALSE, include=FALSE}
+set.seed(1234)
 
-pr<-rasterize(buff,r)
+poly <- spatSample(r, 1, as.points = TRUE) |>
+          st_as_sf() |>
+          st_buffer(dist = 40000)
+
+plot(r)
+plot(st_geometry(poly), add = TRUE)
+
+
+pr <- rasterize(poly, r)
 pr
 plot(pr)
 
 ```
 
-<hr>
+<br>
 
 ### Polygonize a raster
 
@@ -1242,13 +1303,16 @@ Turn all cells that are at least 25km from the roads to polygons.
 
 ```{r polygonize}
 
-pr<-rasterToPolygons(rast,fun=function(x){x>25000},dissolve=TRUE)
-plot(rast)
-plot(pr,col="blue",border=NA,add=TRUE)
+r25 <- r
+r25[r25 < 25000] <- NA 
+
+pr <- as.polygons(r25, aggregate = TRUE)
+plot(r)
+plot(pr, col = "blue", border = NA, add = TRUE)
 
 ```
 
-<hr>
+<br>
 
 <!-- ## Plotting with `rasterVis` -->
 
@@ -1260,65 +1324,60 @@ plot(pr,col="blue",border=NA,add=TRUE)
 
 ## -- Exercice 4 --
 
-Get data for *Trillium cernuum* using package `rgbif` and calculate the mean annual temperature and annual precipitation in the species range. [Bioclimatic variables](http://worldclim.org/bioclim) are described in the WorldClim pages.
+Get data for *Trillium cernuum* using package `rgbif` and calculate the mean annual temperature in the species range. [Bioclimatic variables](http://worldclim.org/bioclim) are described in the WorldClim pages.
 
 Here is how to download the data. Note that the object returned by `occ_search` is a gbif object from which the data element need to be extracted. This element is a `tibble` that needs to be turned to a `data.frame` in order to convert it to a spatial object.
 
 ```{r ex2, eval=FALSE}
 
 # download temperature data
-r<-raster::getData('worldclim',var='bio',res=2.5,lon=-70,lat=65)
+tavg <- worldclim_country("CAN", var = "tavg", path = getwd())
+tavg <- mean(tavg)
 
 # download records
-x<-occ_search(scientificName="Trillium erectum",limit=1000,hasCoordinate=TRUE,country="CA")
-x<-as.data.frame(x$data)
+x <- occ_search(scientificName = "Trillium erectum", limit = 1000, hasCoordinate = TRUE, country = "CA")
+x <- as.data.frame( x$data)
 
 ```
 
-<hr>
+<br>
 
 <!-- ### -- Solution -- -->
 
 ```{r ex2sol, out.width="100%", dev.args=list(pointsize=9), echo=FALSE, include=FALSE}
 
-# dowload climatic data
-r<-raster::getData('worldclim',var='bio',res=10)
-r<-subset(r,c(1,12))
-names(r)<-c("temp","prec")
+# download temperature data
+tavg <- worldclim_country("CAN", var = "tavg", path = getwd())
+tavg <- mean(tavg)
 
 # download Trillium data
-x<-occ_search(scientificName="Trillium cernuum",limit=1000,hasCoordinate=TRUE,country="CA")
+x <- occ_search(scientificName = "Trillium erectum", limit = 1000, hasCoordinate = TRUE, country = "CA")
 
 # get the records in a spatial object
-x<-as.data.frame(x$data)
-coordinates(x)<-~decimalLongitude+decimalLatitude
+x <- as.data.frame(x$data) |>
+       st_as_sf(coords = c("decimalLongitude", "decimalLatitude"), crs = 4326)
 
-# use the same projection for both object
-proj4string(x)<-CRS("+init=epsg:4326")
-x<-spTransform(x,CRS(proj4string(r)))
 
 # reduce raster size to the bounding box of the records
-r<-crop(r,extent(x))
+tavg <- terra::crop(tavg, ext(x))
 
 # get convex hull of distribution
-a<-gConvexHull(x)
+a <- st_union(x) |> 
+       st_convex_hull() |>
+       st_as_sf()
 
 # check data
-par(mfrow=c(2,1),mar=c(2,3,1,3))
-plot(r[[1]])
-plot(x,add=TRUE)
-plot(a,add=TRUE)
-plot(r[[2]])
-plot(x,add=TRUE)
-plot(a,add=TRUE)
+plot(tavg)
+plot(st_geometry(x), add = TRUE)
+plot(st_geometry(a), add = TRUE)
+
 
 # extract values within the range of the species
-e<-extract(r,a)
+e <- extract(tavg, vect(a))
 
 # check distribution of values for mean annual temperature and precipitation
-par(mfrow=c(1,2))
-hist(e[[1]][,1]/10,xlab="")
-hist(e[[1]][,2],xlab="")
+hist(e[,1], xlab = "")
+
 
 ```
 
@@ -1331,11 +1390,7 @@ hist(e[[1]][,2],xlab="")
 
 ```{r map_plot, out.width="70%", dev.args=list(pointsize=9)}
 
-data(meuse)
-coordinates(meuse)<-~x+y
-proj4string(meuse) <- CRS("+init=epsg:28992")
-head(meuse)
-plot(meuse)
+
 
 ```
 
@@ -1343,7 +1398,6 @@ plot(meuse)
 
 ```{r spplot_map, out.width="70%", dev.args=list(pointsize=9)}
 
-spplot(meuse,z=c("cadmium","copper","lead","zinc"))
 
 ```
 
@@ -1351,57 +1405,50 @@ spplot(meuse,z=c("cadmium","copper","lead","zinc"))
 
 ```{r levelplot, out.width="70%", dev.args=list(pointsize=9)}
 
-library(rasterVis)
 
-r<-raster::getData('worldclim',var='tmean',res=10)
-r<-crop(r,extent(-150,-50,43,85))
-
-levelplot(r/10,cuts=99)
 
 ```
 
-<hr>
+<br>
 
 ### `ggspatial`
 
 ```{r ggspatial_map, out.width="70%", dev.args=list(pointsize=9)}
 
-library(ggspatial)
+library(ggplot2)
+library(tidyterra)
 
-ggspatial(meuse)
+
+
+ggplot()+
+  geom_spatraster(data = tavg) +
+  geom_sf(data = trille, color = "orange", alpha = 0.8) +
+  geom_sf(data = canada, color = "white", fill = NA, alpha = 0.8) +
+  coord_sf(xlim = ext(tavg)[1:2], ylim = ext(tavg)[3:4], expand = FALSE) +
+  theme_light()
+
 
 ```
 
-<hr>
+<br>
 
 ### `OpenStreetMap`
 
 ```{r OSM, fig.keep="last"}
-library(dismo)
 
-test<-gmap(meuse,type="roadmap",filename="map.gmap",scale=2)
-p<-spTransform(meuse,CRS(proj4string(test)))
-test<-crop(test,p)
-plot(test)
-plot(p,add=TRUE)
 
 ```
 
-<hr>
+<br>
 
 ### `ggmap`
 
 ```{r ggmap}
-library(ggmap)
 
-test<-gmap("Sherbrooke",type="satellite",scale=2,zoom=13,rgb=FALSE)
-plot(test)
-
-qmap("Sherbrooke",zoom=14,maptype="satellite")
 
 ```
 
-<hr>
+<br>
 
 ## INTERACTIVE
 
@@ -1411,14 +1458,12 @@ select, drawPoly from package raster to interactively select elements
 
 ```{r drawPoly}
 
-plot(x)
-#pol<-drawPoly()
-#plot(pol,add=TRUE,col="red")
+
 
 
 ```
 
-<hr>
+<br>
 
 
 
@@ -1426,7 +1471,7 @@ plot(x)
 
 Here present leaflet and leafletExtras
 
-```{r leaflet1, tidy=FALSE, message=TRUE, warning=TRUE}
+```{r leaflet1, tidy=FALSE, message=TRUE, warning=TRUE, eval = FALSE}
 
 library(leaflet)
 library(leaflet.extras)
@@ -1441,7 +1486,7 @@ leaflet(cat) %>%
 
 ```
 
-<hr>
+<br>
 
 ### `tmap` 
 
@@ -1451,37 +1496,46 @@ cat$attack<-as.factor(cat$Attack)
 
 library(tmap)
 
-tmap_mode("view")
+#tmap_mode("static")
 
-tm_shape(roads)+
-  tm_lines()+
-  tm_shape(cat)+
-  tm_dots("attack")+
-  tm_layout(basemaps=c("Esri.WorldImagery","Esri.WorldShadedRelief","Esri.NatGeoWorldMap"))
+canada$area <- as.numeric(st_area(canada))
+
+tm_shape(canada)+
+  tm_polygons(fill = "area")#+
+#  tm_shape(trille)+
+#  tm_dots("attack")+
+#  tm_layout(basemaps=c("Esri.WorldImagery","Esri.WorldShadedRelief","Esri.NatGeoWorldMap"))
 
 ```
 
 
 
-<hr>
+<br>
 
 ### `mapedit`
 
 Here is a test with using [mapedit](http://r-spatial.org/r/2017/06/09/mapedit_0-2-0.html) functionality.
 
-```{r mapedit, eval=FALSE}
+```{r mapedit, eval = FALSE}
 
 library(mapview)
 library(mapedit)
 
-x <- mapview() %>% editMap()
-plot(x)
-#x <- as(x[[1]],"Spatial")
-plot(x)
+x <- mapview(trille) |>
+       editMap()
+
+x <- x$drawn
+
+plot(st_geometry(x))
+
+mapview(trille) +
+  mapview(x)
+
+
 
 ```
 
-<hr>
+<br>
 
 <!-- # -- EXERCICE 3  -->
 
@@ -1506,7 +1560,7 @@ The main book for learning to use R for spatial data is probably [Applied Spatia
 | **SDMTools** | Tools for Species Distribution Modeling | 
 | **spdep** | Tools for studying spatial dependence |
 
-<hr>
+<br>
 
 ## Spatial Task View
 
@@ -1516,15 +1570,15 @@ The [Spatial Task View]() on maintained on CRAN is worth a visit if you are sear
 
 A good online reference for doing spatial analyses with R is [rspatial.org](rspatial.org) which provides lots of examples on diferent types of analyses.
 
-<!--![rspatial.org](C:/Users/rouf1703/Documents/UdeS/GitHub/spatialR/rspatial.png)--> 
+<!--![rspatial.org](/home/frousseu/Documents/github/spatialR/rspatial.png)--> 
 
-<hr>
+<br>
 
 ## Special packages
 
 ### Landscape metrics with `SDMTools` or `spatialEco`
 
-```{r metrics1}
+```{r metrics1, eval = FALSE, include = FALSE}
 
 library(SDMTools)
 library(spatialEco)
@@ -1571,11 +1625,11 @@ a
 
 <!-- plot(v,vfit) -->
 
-<hr>
+<br>
 
 <!-- ### kriging -->
 
-```{r spatialcorr, eval=FALSE, echo=FALSE}
+```{r spatialcorr, eval=FALSE, include = FALSE, echo=FALSE}
 
 library(foreign)
 
@@ -1660,14 +1714,7 @@ plot(eco,col=colo.scale(eco$elev,c("brown","orange","lightgoldenrod","green","da
 
 <!-- ### Spatial Autocorrelation -->
 
-```{r SA, eval=FALSE, echo=FALSE}
 
-library(spdep)
-
-#neighbours <- poly2nb(cat)
-
-
-```
 
 <!-- ### Kernel smoothing with `ks` -->
 
@@ -1690,7 +1737,7 @@ library(spdep)
 - Easy conversion from **sp** to **sf**
 
 
-
-
+- Teluq R spatial
+- Geocomputations with R
 
 
