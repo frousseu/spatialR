@@ -1,11 +1,11 @@
 ---
-title: Spatial with R
+title: Introduction à la manipulation de données géospatiales avec R
 output:
   html_document:
     depth: 4
     fig_height: 4
     fig_width: 6
-    number_sections: yes
+    number_sections: no
     toc: yes
     toc_depth: 5
     toc_float:
@@ -139,10 +139,10 @@ a {
 </style>
 ```
 
-
+ 
 ```{r options, include=TRUE, cache=FALSE, echo=FALSE, message=FALSE, eval=TRUE}
 options(width=90)
-knitr::opts_chunk$set(cache=TRUE,comment="##",eval=TRUE,error=TRUE,echo=TRUE,message=FALSE,warning=FALSE,tidy=TRUE,size="LARGE",fig.align="center",out.width="100%")
+knitr::opts_chunk$set(cache = TRUE, comment = "##", eval = TRUE, error = TRUE, echo = TRUE, message =FALSE, warning = FALSE, tidy = TRUE, size = "LARGE", fig.align = "center", out.width = "100%")
 
 ```
 
@@ -157,8 +157,8 @@ vectors, points, lines, polygons, shapefiles and geopackages
 <br><br>
 [terra](https://rspatial.github.io/terra/reference/terra-package.html)<br>
 rasters or regularly gridded data
-<br><br>
-You may see some code or package that still rely on the packages **sp**, **rgdal**, **rgeos** or **raster**, but these are now retired (for real!) and were entirely replaced by **sf** and **terra**.
+<br><br><br><br>
+You may see some code or package that still rely on the packages **sp**, **rgdal**, **rgeos** or **raster**, but these are now mostly retired and were entirely replaced by **sf** and **terra**.
 <br><br>
 Another important package is [stars](https://r-spatial.github.io/stars/) for spatiotemporal arrays and  raster and vector data cubes, but we won't talk about this package in this workshop.
 
@@ -200,8 +200,8 @@ roads <- st_read("/home/frousseu/Documents/github/spatialR/data/carreteras.shp")
 ## Plot it
 
 This object can be plotted simply with the function `plot` which has a method for sf objects. The `st_geometry` is used to only plot the geometry of the object, but not the attributes.
-```{r read3, out.width="70%"}
-plot(st_geometry(roads), col = gray(0.75), lwd = 4, axes = TRUE)
+```{r read3, out.width = "70%"}
+plot(st_geometry(roads), axes = TRUE)
 ```
 
 
@@ -217,21 +217,27 @@ head(roads)
 head(as.data.frame(roads))
 ```
 
-
-## Plot attributes
+## Plot a single attribute
 ```{r read6, out.width="70%"}
+plot(roads["CLASIF"], lwd = 4, axes = TRUE)
+```
+
+## Plot (all) attributes
+```{r read7, out.width="70%"}
 plot(roads, lwd = 4, axes = TRUE)
 ```
 
-## vs. plot geometry
-```{r read7, out.width="70%"}
+## Plotting only the geometry
+
+Often, we only want to plot the geometry to see if everything looks OK. This is done with the `st_geometry` function.
+```{r read8, out.width = "70%"}
 plot(st_geometry(roads), lwd = 4, axes = TRUE)
 ```
 
 
 ## Interactive map
 Alternatively, you can use the [mapview](https://r-spatial.github.io/mapview/index.html) package for a more interactive plot.
-```{r read8, out.width="100%"}
+```{r read9, out.width = "100%", out.height = 450}
 
 library(mapview)
 mapview(roads)
@@ -241,10 +247,10 @@ mapview(roads)
 
 ## Writing
 
-We can write in different formats.
+We can write in different formats. The geopackage format (.gpkg) is used more and more compared to the .shp format. 
 ```{r write, eval=TRUE, tidy=TRUE}
 # As a shapefile
-st_write(roads, dsn = "/home/frousseu/Documents/github/spatialR/data/roads.shp", append = FALSE)
+st_write(roads, dsn = "/home/frousseu/Documents/github/spatialR/data/roads.shp", append = FALSE) # append = FALSE overwrites
 
 # As a geopackage
 st_write(roads,dsn = "/home/frousseu/Documents/github/spatialR/data/roads.gpkg", append = FALSE)
@@ -265,7 +271,7 @@ head(cat)
 
 ```
 
-This is a simple `data.frame` with X and Y columns representing longitudes and latitudes. 
+This is a simple `data.frame` with X and Y columns representing longitudes and latitudes. The column `Attack` contains whether a location was concerned by a jaguar attack or not.
 
 <br>
 
@@ -276,7 +282,7 @@ To transform this `data.frame` to a spatial object, we just have to do:
 cat <- st_as_sf(cat, coords = c("X", "Y"), crs = 4326)
 
 ```
-The object returned is now an sf `data.frame`.
+The object returned is now an sf `data.frame`. The code `4326` is a special id for the lat/lon WGS84 coordinate reference system (crs).
 
 <br>
 
@@ -289,61 +295,79 @@ plot(st_geometry(cat), col = adjustcolor(ifelse(cat$Attack == 0, "blue", "red"),
 
 ```
 
+## Add the 2 layers in an interactive map
 
+```{r shpdf4, out.width="60%"}
 
+mapview(roads) + mapview(cat)
 
+```
 
 
 
 ## -- Exercice 1 --
 
-Build a spatial `data.frame` with 100 random locations centered on Sherbrooke, plot the results and write the results to a shapefile. Hint: use the function `runif` or `rnorm` to generate random values within a given range.
+Build a spatial `data.frame` with 100 random locations centered on the CEF conference, plot the results with R and `mapview` and write the results to a shapefile or a geopackage (.gpkg). Read the shapefile you wrote to make sure everything worked well. 
+
+Hint: use the function `runif` or `rnorm` to generate random values within a given range. For example:
 
 <br>
 
-### -- Solution
+```{r ex1, eval = FALSE}
+
+lat <- rnorm(100, mean = 45, sd = 0.1) # 100 random values with a mean of 45 and an sd of 0.1
+lon <- rnorm(100, mean = 72, sd = 0.1) 
+
+```
+
+
+### -- Solution --
 
 Here is a solution
 ```{r ex00, out.width="70%", echo=FALSE, include=FALSE}
 
 # Find coordinates using Google maps and generate random values for lat lon coordinates and an id
-set.seed(1234)
-n<-50
-lon<-rnorm(n,-71.892, 0.04)
-lat<-rnorm(n, 45.401, 0.04)
-id<-1:n
+set.seed(1234) # set the random seed to get reproducible results
+n <- 50
+lon <- rnorm(n,-75.7386, 0.04)
+lat <- rnorm(n, 45.4221, 0.04)
+id <- 1:n
 
 # Build a data.frame and turn it to a SpatialPointsDataFrame
 x <- data.frame(lon,lat,id)
 x <- st_as_sf(x, coords=c("lon", "lat"), crs = 4326)
 
+st_write(x, dsn = "/home/frousseu/Documents/github/spatialR/cef.gpkg", append = FALSE)
+
+cef <- st_read("/home/frousseu/Documents/github/spatialR/cef.gpkg")
+
+
 # Plot the result
-plot(st_geometry(x), axes = TRUE)
+plot(st_geometry(cef), axes = TRUE)
 
 # Alternatively, plot the results with mapview
-mapview(x)
+mapview(cef)
 
 
 
 ```
 
-<br>
-
-```{r ex002, out.width="80%", echo=FALSE, include=FALSE}
-
-st_write(x, dsn = "/home/frousseu/Documents/github/spatialR/sherbrooke.gpkg", append = FALSE)
-
-```
 
 <br>
 
-# COORDINATE REFERENCE SYSTEM
+# COORDINATE REFERENCE SYSTEM (CRS)
 
-```{r fig.width=6.5,fig.height=4,out.width="70%"}
+```{r fig.width = 10, fig.height = 6, out.width = "70%"}
 
 quebec <- st_read("/home/frousseu/Documents/github/spatialR/québec.gpkg")
 
 st_crs(quebec)
+
+```
+
+## Different CRS
+
+```{r fig.width = 10, fig.height = 6, out.width = "70%"}
 
 par(mfrow = c(1,2))
 plot(st_geometry(quebec), axes = TRUE)
@@ -359,11 +383,11 @@ As always, when playing with spatial data, one needs to be aware of coordinate r
 
 First, let's get some data from GBIF using the **rgbif** package. We will get occurrence data for a spring plant species, the Red Trillium (*Trille rouge*, *Trillium erectum*).
 
-<img style="height: 300px; align: center;" src="https://inaturalist-open-data.s3.amazonaws.com/photos/342006400/medium.jpg">
+<img style="height: 400px; align: center;" src="https://inaturalist-open-data.s3.amazonaws.com/photos/342006400/medium.jpg">
 
 
-## Occurrences from GBIF
-```{r proj_data, fig.width=6.5,fig.height=4,out.width="70%"}
+## Get occurrences from GBIF
+```{r proj_data, fig.width=7,fig.height=5,out.width="70%"}
 
 library(rgbif)
 
@@ -372,23 +396,37 @@ trille <- st_as_sf(occs$data, coords = c("decimalLongitude", "decimalLatitude"))
 plot(st_geometry(trille), axes = TRUE)
 st_crs(trille)
 
-
 ```
-
+<br>
+We haven't assigned a crs to the sf object.
 
 <br>
 
-## Assign a CRS (*C*oordinate *R*eference *S*ystem)
+## EPSG and CRS
+<br>
+See [https://epsg.io/](https://epsg.io/) to find CRS EPSG codes.
+<br><br>
+**4326** - WGS 84 -- WGS84 - World Geodetic System 1984, used in GPS<br>
+**32198** - NAD83 / Quebec Lambert<br>
+**26918** - NAD83 / UTM zone 18N<br>
+**9820** - Lambert Azimuthal Equal Area<br>
+**6622** - NAD83(CSRS)v2 / Quebec Lambert<br>
+<br>
+etc.
+
+## Assign a CRS
 
 Assigning a coordinate reference system can be done with the functions `st_crs` or it can be done when transforming a `data.frame` to a spatial `data.frame` with `st_as_sf`.
 
-See [https://epsg.io/](https://epsg.io/) to find CRS epsg's.
 ```{r proj_assign, fig.width=6.5,fig.height=4,out.width="70%"}
 
 st_crs(trille) <- 4326
 st_crs(trille)
 
+```
 
+## With `st_as_sf`
+```{r proj_assign2, fig.width=6.5,fig.height=4,out.width="70%"}
 
 trille <- st_as_sf(occs$data, coords = c("decimalLongitude", "decimalLatitude"), crs = 4326)
 plot(st_geometry(trille), axes = TRUE)
@@ -399,14 +437,11 @@ plot(st_geometry(trille), axes = TRUE)
 
 ## Change a CRS
 
-
-```{r proj_assign2, fig.width=6.5,fig.height=4,out.width="70%"}
+```{r proj_assign3, fig.width=6.5,fig.height=4,out.width="70%"}
 
 # 32198 NAD83 / Quebec Lambert
 trille <- st_transform(trille, 32198)
 plot(st_geometry(trille), axes = TRUE)
-
-
 
 ```
 
@@ -414,27 +449,42 @@ plot(st_geometry(trille), axes = TRUE)
 
 When plotting or working with multiple spatial objects, the same CRS needs to be used!
 
-```{r proj_assign3, fig.width = 5, fig.height = 5, out.width = "60%"}
+```{r proj_assign4, fig.width = 5, fig.height = 5, out.width = "60%"}
 
 
-trille <- st_transform(trille, st_crs(quebec))
-
-par(mar = c(0, 0, 0, 0))
 plot(st_geometry(quebec))
 plot(st_geometry(trille), add = TRUE)
+
+```
+
+## A note on geodata and rmapshaper
+
+The [geodata](https://github.com/rspatial/geodata) package returns a `SpatVector` which we transform to a sf object.
+
+The `ms_simplify` function from the [rmapshaper](https://andyteucher.ca/rmapshaper/) package is very useful to reduce the precision of polygons and maintaining the topology (and adjacent polygons).
+
+```{r geodata, fig.width=10, fig.height=6}
+
+library(geodata)
+
+canada <- gadm('GADM', country='CAN', level=1) |> 
+            st_as_sf()
+
+
+library(rmapshaper)
+
+canada <- ms_simplify(canada, 0.001) # simplify shape and keep 0.1% of points
 
 ```
 
 
 ## Multiple CRS
 
+Let's use Canada to more easily see the differences between some CRS.
+
 ```{r multiple_crs, fig.width=10, fig.height=6}
 
-library(geodata)
-library(rmapshaper)
 
-canada <- gadm('GADM', country='CAN', level=1) |> st_as_sf()
-canada <- ms_simplify(canada, 0.001)
 
 crs <- c(4326, 2958, 32198, 3995)
 
@@ -467,15 +517,6 @@ st_bbox(st_transform(canada, crs[3]))
 
 ## CRS and EPSG
 
-Projections can also be given with their [EPSG](http://www.epsg-registry.org/) codes. More info on projections can be found here [epsg.io](http://epsg.io/) where a description of the different EPSG is available. For example, submit the EPSG 4326 and check the corresponding string with the PROJ.4 library.
-
-```{r proj_epsg}
-
-#canada2<-spTransform(x,CRS("+init=epsg:4326"))
-#proj4string(canada2)
-
-```
-
 The EPSG code 4326 is equivalent to giving the `"+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"` CRS to the data.
  
 <br>
@@ -485,6 +526,26 @@ The EPSG code 4326 is equivalent to giving the `"+proj=longlat +datum=WGS84 +ell
 Play with crs exercice
 
 
+```{r Ex2, include = FALSE, eval = FALSE}
+canada <- gadm("GADM", country = c("USA","CAN"), level = 1) |>
+    st_as_sf()
+canada <- ms_simplify(canada, 0.001)
+
+
+w <- world(resolution=5, level=0, path = getwd(), version="latest") |>
+       st_as_sf()
+
+plot(w)
+
+w <- st_transform(canada, 5937)
+w <- st_transform(w, 102016)
+w <- st_transform(canada, 3995)
+w <- st_transform(w, 54030)
+w <- st_transform(w, 53045)
+
+```
+
+<!--
 
 ## -- Exercice 2 --
 
@@ -501,9 +562,11 @@ can <- gadm('GADM', country = 'CAN', level = 1) |> st_as_sf()
 
 <br>
 
+-->
+
 <!-- ### -- Solution -- -->
 
-<!--- NEEDS TO FIX THIS!!!!!!!! -->
+<!-- NEEDS TO FIX THIS!!!!!!!!
 ```{r exAsol, out.width="60%", echo=FALSE, eval = FALSE, include=FALSE, fig.height=5, fig.width=5}
 
 # first set the seed from the random generator to get reproducible results 
@@ -548,17 +611,26 @@ plot(e[,1],e[,2],cex=2*e$o,xlab="id 1",ylab="id 2",asp=1)
 
 ```
 
+-->
+
 <!-- This is probably not the most efficient way. Using `gIntersection(b, b, byid = TRUE)` returns the 132 overlapping pairs faster, but ids need to be constructed to associate the different intersections to the correct pairs. Also, since the buffers all have the same dimension, we don't need the proportion of overlap for each ids as it is symmetric within each pair.   -->
 
 <br>
 
 
-
-
-
 ## Spatial operations
 
-Most spatial operations are available in the package `sf`. One of the requirement for functions to work well for spatial operations in `sf` is that objects **are in a projected coordinate system**.
+Most spatial operations are available in the package `sf`. One of the requirement for functions to work well for spatial operations in `sf` is that objects **are in a projected coordinate system** (i.e. not in lat/lon 4326). This can be checked with `st_is_longlat`.
+
+
+```{r isprojected}
+
+st_is_longlat(trille)
+st_is_longlat(quebec)
+st_is_longlat(canada)
+
+```
+
 
 ```{r quebec, include = FALSE}
 
@@ -574,8 +646,10 @@ st_write(canada, "/home/frousseu/Documents/github/spatialR/canada.gpkg", append 
 st_write(canada[canada$NAME_1=="Québec",], "/home/frousseu/Documents/github/spatialR/québec.gpkg", append = FALSE)
 
 qc <- gadm("CAN", level = 2, path = "Québec") |> st_as_sf() 
-sherbrooke <- qc[qc$NAME_1 == "Québec" & qc$NAME_2 == "La Région-Sherbrookoise", ]  
-st_write(sherbrooke, "/home/frousseu/Documents/github/spatialR/sherbrooke.gpkg", append = FALSE)
+#sherbrooke <- qc[qc$NAME_1 == "Québec" & qc$NAME_2 == "La Région-Sherbrookoise", ]  
+outaouais <- qc[qc$NAME_1 == "Québec" & qc$NAME_2 == "Communauté-Urbaine-de-l'Outaouai", ] 
+
+st_write(outaouais, "/home/frousseu/Documents/github/spatialR/outaouais.gpkg", append = FALSE)
 
 ```
 
@@ -587,49 +661,39 @@ The function over from package sp is used to determine whether different entitie
 ```{r overlay1, fig.width=7,fig.height=4,out.width="100%"}
 
 
-sherbrooke <- st_read("/home/frousseu/Documents/github/spatialR/sherbrooke.gpkg")
+outaouais <- st_read("/home/frousseu/Documents/github/spatialR/outaouais.gpkg")
 
 
 #x <- st_sample(sherbrooke, 25, type = "random") |> st_as_sf()
 
-plot(st_geometry(sherbrooke))
-plot(st_geometry(x), add = TRUE)
+trille <- st_transform(trille, st_crs(outaouais))
 
-mapview(sherbrooke)+mapview(x)
+plot(st_geometry(outaouais))
+plot(st_geometry(trille), add = TRUE)
 
-xin <- x[sherbrooke,]
+mapview(outaouais)+mapview(trille)
 
-s <- lengths(st_intersects(x, sherbrooke))
-xout <- x[s == 0, ]
+trillein <- trille[outaouais,]
 
-plot(st_geometry(sherbrooke))
-plot(st_geometry(xin), pch = 16, col = "red", add = TRUE)
-plot(st_geometry(xout), pch = 16, col = "blue", add = TRUE)
+s <- lengths(st_intersects(trille, outaouais))
+trilleout <- trille[s == 0, ]
 
-
-
-```
+plot(st_geometry(outaouais))
+plot(st_geometry(trillein), pch = 16, col = "red", add = TRUE)
+plot(st_geometry(trilleout), pch = 16, col = "blue", add = TRUE)
 
 
-<br>
-
-The points are stored in a `SpatialPointsDataFrame` and the polygon in a `SpatialPolygons` object.
-
-```{r overlay2, fig.width=7,fig.height=4,out.width="100%"}
-
-class(x)
-class(sherbrooke)
 
 ```
 
-<br>
 
 <!-- As can be seen in the help files for `?over`, if the second object is a spatial object without attributes, a vector with the same length as the first element is returned with the first overlapping id in the second element.If the second element has attribute data, attribute data are returned. -->
 
-<br>
 
 
 ```{r points_op, fig.width=7,fig.height=4,out.width="100%", eval = FALSE, include = FALSE}
+
+x <- trillein
 
 # list of functions to apply
 op<-c("st_centroid","st_concave_hull","st_convex_hull","st_buffer","st_voronoi")
@@ -647,11 +711,13 @@ for(i in seq_along(op)){
 
 Here are some common operations that can be done on points (but also on lines or on polygons). 
 
-```{r points_op2, fig.width = 7, fig.height = 6, out.width="100%"}
+```{r points_op2, fig.width = 7, fig.height = 6, out.width="80%"}
 
-x <- st_transform(x, 32198)
+x <- trillein
+st_is_longlat(x)
+x <- st_transform(x, 32198) # use a projected crs
 
-par(mfrow=c(2,3),mar=c(0,0,3,0))
+par(mfrow = c(2, 3), mar = c(0, 0, 1, 0))
 
 x2 <- st_union(x) |>
         st_centroid() |>
@@ -668,7 +734,7 @@ plot(st_geometry(x), main = "st_convex_hull")
 plot(x2, pch = 16, cex = 3, border = "red", add = TRUE)
 
 x2 <- st_union(x) |>
-        st_concave_hull(ratio = 0.30) |>
+        st_concave_hull(ratio = 0.20) |>
         st_geometry()
 
 plot(st_geometry(x), main = "st_concave_hull")
@@ -691,15 +757,44 @@ plot(x2, pch = 16, cex = 3, border = "red", add = TRUE)
 
 <br>
 
+### A note on `st_union`
+
+The function `st_union`is used to combine geometries together. This is useful if we want to apply an operation on each feature or on all combined features.
+```{r union1, fig.width = 7, fig.height = 6, out.width="80%"}
+
+dim(x)
+dim(st_union(x))
+length(st_union(x))
+
+```
+
+
+```{r union2, fig.width = 7, fig.height = 6, out.width="80%"}
+
+head(x) # several points
+head(st_union(x)) # on set of MULTIPOINT
+
+```
+
 ### Operations on polygons
 
-Here are some common operations that are done on polygons.
+First, let's create two polygons with buffers arround some Red Trillium observations.
 
 ```{r polygons_op, fig.width=7, fig.height=6, out.width = "100%"}
 
 # construct two buffers
-x1 <- st_buffer(x[38, ], dist = 2000)
+x1 <- st_buffer(x[38, ], dist = 4000)
 x2 <- st_buffer(x[23, ], dist = 2000)
+
+plot(st_geometry(rbind(x1, x2)), axes = TRUE) # bind them in the same object
+     
+```
+     
+### Overlapping polygons
+
+Here are some common overlapping operations that are done on polygons.     
+
+```{r polygons_op2, fig.width=7, fig.height=6, out.width = "100%"}
 
 # list of functions to apply
 op <- c("st_intersection", "st_difference", "st_sym_difference", "st_union")
@@ -846,7 +941,7 @@ Finally, calculate the total length of roads inside each buffer.
 dist <- sapply(o, function(i){
   sum(st_length(int[i]))  
 })
-text(st_coordinates(st_centroid(buffs)), labels = round(dist/1000,1), col = "black", adj = c(-0.75,-1.5), xpd = TRUE, cex = 0.8)
+text(st_coordinates(st_centroid(buffs)), labels = round(dist/1000,1), col = "black", adj = c(-0.75,-1.5), xpd = TRUE, cex = 1)
 ```
 
 <br>
@@ -871,11 +966,6 @@ ms_simplify(canada, 0.2) |>
 <!-- ## Plotting -->
 
 <!-- ### plot -->
-
-
-```{r plot, out.width="50%", eval=FALSE, echo=FALSE}
-
-```
 
 
 
@@ -986,8 +1076,10 @@ Reading can be done directly with the `rast` function.
  
 ```{r read_rast, out.width="70%"}
 
-r1 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_021E.tif")
-r2 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031H.tif")
+#r1 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_021E.tif")
+#r2 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031H.tif")
+r1 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031G.tif")
+r2 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031F.tif")
 
 par(mfrow=1:2)
 plot(r1)
@@ -1010,7 +1102,7 @@ r2 <- aggregate(r2, fact = 10)
 
 ncell(r1)
 
-r <- merge(r1, r2) # mosaic could also be used if rasters overlap
+r <- terra::merge(r1, r2) # mosaic could also be used if rasters overlap
 plot(r)
 
 ```
@@ -1069,7 +1161,7 @@ plot(f)
 ```
 
 ## Projecting
-```{r stack2, out.width="90%",fig.height=5, fig.width=7}
+```{r stack3, out.width="90%",fig.height=5, fig.width=7}
 
 f <- project(lc, r) 
 f <- mask(f, r)
@@ -1088,15 +1180,15 @@ f <- mask(f, r)
 
 ### Extract
 
-Let's extract elevation data for the Bicknell's Thrush occurrences we got previously.
+Let's extract elevation data for the Red Trillium occurrences we got previously.
 
 ```{r extract0}
 
 plot(r)
-trille <- st_transform(trille, st_crs(r))
-trille$date <- format(as.Date(trille$eventDate),"%m-%d")
-trille <- trille[trille$date >= "06-20" & trille$date <= "08-01", ]
-plot(st_geometry(trille), add = TRUE)
+#trille <- st_transform(trille, st_crs(r))
+#trille$date <- format(as.Date(trille$eventDate),"%m-%d")
+#trille <- trille[trille$date >= "06-20" & trille$date <= "08-01", ]
+plot(st_geometry(st_transform(trille, st_crs(r))), add = TRUE)
 
 ```
 
@@ -1104,7 +1196,7 @@ plot(st_geometry(trille), add = TRUE)
 
 ```{r extract}
 
-e <- extract(r, trille)
+e <- terra::extract(r, trille)
 head(e)
 r
 hist(e[, 2] , xlab = "Altitude", main = "")
@@ -1115,7 +1207,7 @@ hist(e[, 2] , xlab = "Altitude", main = "")
 
 #### `exactextractr`
 
-`velox` is an R package designed for faster extractions using C++ and rasters held in memory. For quicker extractions on relatively small datasets it can be much faster than the function `extract`.
+[`exactextractr`](https://isciences.gitlab.io/exactextractr/) is an R package designed for faster extractions using C++. It is usually faster than the function `terra::extract`. It also makes exact extractions, i.e. it takes into account the proportion of cells that are overlapping with the polygons. This can also be done with `terra::extract` and the argument `exact = TRUE`, but it is much slower.
 
 ```{r velox0, eval = FALSE, include = FALSE}
 library(exactextractr)
