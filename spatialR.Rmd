@@ -157,7 +157,7 @@ vectors, points, lines, polygons, shapefiles and geopackages
 <br><br>
 [terra](https://rspatial.github.io/terra/reference/terra-package.html)<br>
 rasters or regularly gridded data
-<br><br><br><br>
+<br><br><br>
 You may see some code or package that still rely on the packages **sp**, **rgdal**, **rgeos** or **raster**, but these are now mostly retired and were entirely replaced by **sf** and **terra**.
 <br><br>
 Another important package is [stars](https://r-spatial.github.io/stars/) for spatiotemporal arrays and  raster and vector data cubes, but we won't talk about this package in this workshop.
@@ -171,6 +171,7 @@ Another important package is [stars](https://r-spatial.github.io/stars/) for spa
 - vect terra and sf
 - avoid reprojecting rasters (2 reasons)
 - base R pipe |>
+- explain st_intersects
 
 
 # VECTOR DATA (sf)
@@ -211,6 +212,8 @@ plot(st_geometry(roads), axes = TRUE)
 class(roads)
 head(roads)
 ```
+<br>
+It is mostly a data.frame to which we add a **geometry column**. 
 
 ## Almost just a `data.frame`
 ```{r read5, out.width="70%"}
@@ -468,7 +471,7 @@ The `ms_simplify` function from the [rmapshaper](https://andyteucher.ca/rmapshap
 library(geodata)
 
 canada <- gadm('GADM', country='CAN', level=1) |> 
-            st_as_sf()
+            st_as_sf() # transform a SpatVector to an sf data.frame
 
 
 library(rmapshaper)
@@ -663,29 +666,44 @@ The function over from package sp is used to determine whether different entitie
 
 outaouais <- st_read("/home/frousseu/Documents/github/spatialR/outaouais.gpkg")
 
-
-#x <- st_sample(sherbrooke, 25, type = "random") |> st_as_sf()
-
 trille <- st_transform(trille, st_crs(outaouais))
 
-plot(st_geometry(outaouais))
+plot(st_geometry(outaouais), axes = TRUE)
 plot(st_geometry(trille), add = TRUE)
-
-mapview(outaouais)+mapview(trille)
-
-trillein <- trille[outaouais,]
-
-s <- lengths(st_intersects(trille, outaouais))
-trilleout <- trille[s == 0, ]
-
-plot(st_geometry(outaouais))
-plot(st_geometry(trillein), pch = 16, col = "red", add = TRUE)
-plot(st_geometry(trilleout), pch = 16, col = "blue", add = TRUE)
-
-
 
 ```
 
+
+#### Interactive map
+```{r overlay2, fig.width=7,fig.height=4,out.width="100%", out.height=550}
+
+mapview(outaouais) + mapview(trille)
+
+```
+
+#### Intersecting
+```{r overlay3, fig.width=6,fig.height=5,out.width="100%"}
+
+s <- st_intersects(trille, outaouais) |>
+        lengths()
+
+trilleout <- trille[s == 0, ]
+trillein <- trille[s > 0, ]
+
+plot(st_geometry(outaouais), axes = TRUE)
+plot(st_geometry(trillein), pch = 16, col = "red", add = TRUE)
+plot(st_geometry(trilleout), pch = 16, col = "blue", add = TRUE)
+
+```
+
+#### Intersecting 2nd version
+
+Another more compact way of getting only the occurrences that are in the outaouais polygon.
+```{r overlay4, fig.width=7,fig.height=4,out.width="100%"}
+
+trillein <- trille[outaouais, ]
+
+```
 
 <!-- As can be seen in the help files for `?over`, if the second object is a spatial object without attributes, a vector with the same length as the first element is returned with the first overlapping id in the second element.If the second element has attribute data, attribute data are returned. -->
 
@@ -711,7 +729,7 @@ for(i in seq_along(op)){
 
 Here are some common operations that can be done on points (but also on lines or on polygons). 
 
-```{r points_op2, fig.width = 7, fig.height = 6, out.width="80%"}
+```{r points_op2, fig.width = 7, fig.height = 6, out.width="100%"}
 
 x <- trillein
 st_is_longlat(x)
@@ -778,9 +796,9 @@ head(st_union(x)) # on set of MULTIPOINT
 
 ### Operations on polygons
 
-First, let's create two polygons with buffers arround some Red Trillium observations.
+First, let's create two polygons with buffers around some Red Trillium observations.
 
-```{r polygons_op, fig.width=7, fig.height=6, out.width = "100%"}
+```{r polygons_op, fig.width=7, fig.height=6, out.width = "80%"}
 
 # construct two buffers
 x1 <- st_buffer(x[38, ], dist = 4000)
@@ -794,7 +812,7 @@ plot(st_geometry(rbind(x1, x2)), axes = TRUE) # bind them in the same object
 
 Here are some common overlapping operations that are done on polygons.     
 
-```{r polygons_op2, fig.width=7, fig.height=6, out.width = "100%"}
+```{r polygons_op2, fig.width=7, fig.height=6, out.width = "80%"}
 
 # list of functions to apply
 op <- c("st_intersection", "st_difference", "st_sym_difference", "st_union")
@@ -808,7 +826,7 @@ ylim <- limits[c(2, 4)]
 for(i in seq_along(op)){
   plot(st_geometry(x1), main = op[i], xlim = xlim, ylim = ylim)
   plot(st_geometry(x2), add = TRUE)
-  plot(st_geometry(get(op[i])(x1, x2)), add = TRUE, col = "forestgreen")
+  plot(st_geometry(get(op[i])(x1, x2)), add = TRUE, col = "forestgreen") # this is just a way to get all functions defined in op
 }
 
 ```
@@ -818,7 +836,7 @@ for(i in seq_along(op)){
 ### Measure distances
 
 Here, let's measure the distance between each points and their centroid.
-```{r measure_distance, out.width="70%"}
+```{r measure_distance, fig.width=7, fig.height=6, out.width = "80%"}
 
 cx <- st_union(x) |> st_centroid()
 plot(st_geometry(x), axes = TRUE)
@@ -831,7 +849,7 @@ mtext(side = 3, line = 0, text = "Distance in km from centroid", ad = 0.98)
 
 ### Measure areas
 
-```{r measure_area, fig.width=7,fig.height=5,out.width="90%"}
+```{r measure_area, fig.width=7,fig.height=6,out.width="80%"}
 
 set.seed(123)
 
@@ -906,17 +924,16 @@ b <- st_convex_hull(st_union(roads)) # determine the bounding box of the road sy
 s <- st_sample(b, n, type = "random") # throw random points within the bounding box
 buffs <- st_buffer(s, dist = 10000) # turn the points to buffers
 
-plot(st_geometry(b), axes = TRUE)
-plot(st_geometry(roads), col = gray(0.7))
+plot(st_geometry(roads), col = gray(0.7), axes = TRUE)
 text(st_coordinates(s), labels = names(buffs))
-plot(buffs, add = TRUE, border = NA, col = gray(0,0.1))
+plot(buffs, border = NA, col = gray(0, 0.1), add = TRUE)
 ```
 
 <br>
 
 Extract all road sections that intersect with a buffer.
 
-```{r over2, fig.width=8,fig.height=7,out.width="60%",echo=-(1:11)}
+```{r over2, fig.width=8,fig.height=7,out.width="60%",echo=-(1:9)}
 <<over>>
 int <- st_intersection(buffs, roads, byid = TRUE)
 plot(int, col = "red", lwd = 4, add = TRUE)
@@ -926,7 +943,7 @@ plot(int, col = "red", lwd = 4, add = TRUE)
 
 Then determine the list of road sections touching each buffer.
 
-```{r over3, fig.width=8,fig.height=7,out.width="60%",echo=-(1:13),fig.show="hide"}
+```{r over3, fig.width=8,fig.height=7,out.width="60%",echo=-(1:11),fig.show="hide"}
 <<over2>>
 o <- st_intersects(buffs, int)
 o
@@ -936,7 +953,7 @@ o
 
 Finally, calculate the total length of roads inside each buffer.
 
-```{r over4, fig.width=8,fig.height=7,out.width="60%",echo=-(1:14),results="hide"}
+```{r over4, fig.width=8,fig.height=7,out.width="60%",echo=-(1:13),results="hide"}
 <<over3>>
 dist <- sapply(o, function(i){
   sum(st_length(int[i]))  
@@ -946,9 +963,9 @@ text(st_coordinates(st_centroid(buffs)), labels = round(dist/1000,1), col = "bla
 
 <br>
 
-<!-- ### Simplify things -->
+### Simplify things
 
-```{r simplify, out.width="50%", eval=FALSE, include=FALSE}
+```{r simplify, out.width="80%", eval=TRUE, include=TRUE}
 
 plot(st_geometry(canada))
 plot(st_geometry(st_simplify(canada, preserveTopology = TRUE, dTolerance = 50000)), border = "red", add = TRUE)
@@ -969,7 +986,7 @@ ms_simplify(canada, 0.2) |>
 
 
 
-
+<!--
 
 ```{r plot2, out.width="50%", eval=FALSE, echo=FALSE}
 
@@ -978,13 +995,15 @@ plot(ch,border="red",col="blue",lwd=10)
 
 ```
 
+-->
+
 <!-- ### spplot -->
 
 <!-- Do an spplot on something -->
 
 ## -- Exercice 3 --
 
-Calculate the proportion of forest in 10 random buffers across a landscape. Let's first generate the landscape.
+Calculate the proportion of forest in 10 random buffers across a landscape. Let's first generate a fictious landscape.
 
 ```{r ex0, tidy=FALSE, out.width="60%"}
 
@@ -1041,7 +1060,7 @@ ifelse(int, 0, st_area(cuts) / st_area(b))
 ## What is a raster?
 
 A raster is a regular grid of pixel with values. Here is an example of building a simple raster with random values using the [`terra`](https://rspatial.github.io/terra/) package.
-```{r buildrastersimple}
+```{r buildrastersimple, out.width = "70%"}
 library(terra)
 
 n <- 200
@@ -1076,10 +1095,8 @@ Reading can be done directly with the `rast` function.
  
 ```{r read_rast, out.width="70%"}
 
-#r1 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_021E.tif")
-#r2 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031H.tif")
-r1 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031G.tif")
-r2 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031F.tif")
+r1 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031F.tif")
+r2 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031G.tif")
 
 par(mfrow=1:2)
 plot(r1)
@@ -1112,25 +1129,25 @@ plot(r)
 Rasters can be cropped with a specific region using the `extent` argument.
 ```{r crop, out.width="70%"}
 
-e <- ext(-72.75, -70.25, 45, 46)
-r <- crop(r, e)
-plot(r)
+e <- ext(-76.5, -75.0, 45.2, 45.8)
+plot(crop(r, e)) 
+plot(st_geometry(outaouais), add = TRUE)
 
-crop(r, sherbrooke) |>
+plot(crop(r, outaouais))
+plot(st_geometry(outaouais), add = TRUE)
+
+crop(r, outaouais) |>
+  mask(outaouais) |>
   plot()
-
-crop(r, sherbrooke) |>
-  mask(sherbrooke) |>
-  plot()
-
+plot(st_geometry(outaouais), add = TRUE)
 
 ```
 
 <br>
 
-## Dimensions and memory
+## Dimensions
 
-Rasters can have a single layer (`RasterLayer`) or multiple layers (`RasterStack`, `RasterBrick`). 
+Rasters can have a single or multiple layers. However, layers need to be of the same exact dimensions and resolution.
 
 ```{r stack1}
 
@@ -1138,14 +1155,26 @@ r
 dim(r)
 ncell(r)
 nlyr(r)
+
+```
+
+## Memory
+
+When reading rasters on your computer, often they will not be brought into memory. The object created will just be a pointer to a file. This is to reduce the memory footprint of rasters.
+
+```{r stack2}
+
 inMemory(r)
+
+lc <- rast("WorldCover_trees_30s.tif")
+inMemory(lc)
 
 ```
 
 <br>
 
 ## Cropping and masking
-```{r stack2, out.width="90%",fig.height=5, fig.width=7}
+```{r stack3, out.width="80%",fig.height=5, fig.width=7}
 
 lc <- rast("WorldCover_trees_30s.tif")
 inMemory(lc)
@@ -1161,18 +1190,39 @@ plot(f)
 ```
 
 ## Projecting
-```{r stack3, out.width="90%",fig.height=5, fig.width=7}
+```{r stack4, out.width="80%",fig.height=5, fig.width=7}
 
-f <- project(lc, r) 
-f <- mask(f, r)
+f <- project(lc, r)
 
 ```
+<br>
+
+The function `project` will take what is in `lc` and put it in the resolution and extent of `r`.
+
+
+## Stack rasters together
+
+```{r stack5, out.width="80%",fig.height=5, fig.width=7}
+
+forest <- f
+names(f) <- "forest"
+
+elevation <- r
+names(elevation) <- "elevation"
+
+env <- c(forest, elevation)
+
+dim(env)
+env
+
+```
+
 
 <br>
 
 ## A note on reprojecting rasters
-
-
+<br><br>
+Each time a raster is projected or transformed, the original values will be modified and calculation will be done to fit it in the new dimensions and resolution of the output raster. Original values are lost. Thus, **it is always better to transform the crs of vectors to fit it to a raster than vice versa**.
 
 
 
@@ -1184,11 +1234,12 @@ Let's extract elevation data for the Red Trillium occurrences we got previously.
 
 ```{r extract0}
 
-plot(r)
-#trille <- st_transform(trille, st_crs(r))
-#trille$date <- format(as.Date(trille$eventDate),"%m-%d")
-#trille <- trille[trille$date >= "06-20" & trille$date <= "08-01", ]
-plot(st_geometry(st_transform(trille, st_crs(r))), add = TRUE)
+x <- trillein
+x <- st_transform(x, st_crs(elevation))
+
+plot(elevation)
+plot(st_geometry(outaouais), add = TRUE)
+plot(st_geometry(x), add = TRUE)
 
 ```
 
@@ -1196,37 +1247,40 @@ plot(st_geometry(st_transform(trille, st_crs(r))), add = TRUE)
 
 ```{r extract}
 
-e <- terra::extract(r, trille)
+e <- extract(elevation, x)
 head(e)
-r
+elevation
 hist(e[, 2] , xlab = "Altitude", main = "")
 
 ```
 
+
+### Extract multiple layers
+```{r extract}
+
+e <- extract(env, x)
+head(e)
+
+
+```
+
+
 <br>
 
-#### `exactextractr`
+### `exactextractr`
 
 [`exactextractr`](https://isciences.gitlab.io/exactextractr/) is an R package designed for faster extractions using C++. It is usually faster than the function `terra::extract`. It also makes exact extractions, i.e. it takes into account the proportion of cells that are overlapping with the polygons. This can also be done with `terra::extract` and the argument `exact = TRUE`, but it is much slower.
 
 ```{r velox0, eval = FALSE, include = FALSE}
 library(exactextractr)
-library(microbenchmark)
 
+buff <- st_buffer(x, dist = 500)
 
-buff <- st_buffer(trille, dist = 500)
-elev <- crop(r, ext(-71.23, -70.7, 45.2, 45.5))
-plot(elev)
+plot(crop(elevation, outaouais))
+plot(st_geometry(outaouais), add = TRUE)
 plot(st_geometry(buff), add = TRUE)
-```
 
-<br>
-
-```{r velox1, eval = FALSE}
-
-system.time(extract(r, buff , fun = mean, exact = TRUE))
-system.time(exact_extract(r, buff , fun = "mean"))
-
+exact_extract(elevation, buff , fun = "mean")
 ```
 
 <br>
@@ -1235,12 +1289,13 @@ system.time(exact_extract(r, buff , fun = "mean"))
 
 ```{r reclassify}
 
-mn <- c(0, 100, 200, 400, 600, 800) # min
-mx <- c(100, 200, 400, 600, 800, 1200) # max
+mn <- c(0, 50, 100, 150, 200, 400) # min
+mx <- c(50, 100, 150, 200, 400, 600) # max
 mat <- cbind(mn, mx,lab = mx)
 mat
-rc <- classify(r, mat)
-plot(rc, col = terrain.colors(nrow(mat)))
+elevationclass <- classify(elevation, mat)
+plot(elevationclass, col = rev(terrain.colors(nrow(mat))))
+plot(st_geometry(outaouais), add = TRUE)
 
 ```
 
@@ -1252,7 +1307,9 @@ Here is an example of building a raster where each pixel value is determined by 
 
 ```{r buildrastercomplex2}
 
-rtrille <- rast(resolution = 50000, ext = ext(trille))
+trille <- st_transform(trille, 32198)
+
+rtrille <- rast(resolution = 20000, ext = ext(trille))
 
 rtrille <- rasterize(trille, rtrille, field = 1, fun = "count", background = 0)
 
@@ -1263,8 +1320,8 @@ rtrille
 ```
 
 <br>
+### Plot the results
 
-Now let's plot the results.
 ```{r buildrastercomplex3, out.width="60%"}
 
 
@@ -1284,14 +1341,14 @@ Measure distances from roads and store the values in a raster.
 
 ```{r measure_raster, out.width="60%"}
 
-library(RColorBrewer)
-library(FRutils)
-
 roads2 <- st_transform(roads, 32198)
+
 r <- rast(resolution = 1000, ext= ext(roads2))
+
 rcentroids <- xyFromCell(r, 1:ncell(r)) |>
   as.data.frame() |>
   st_as_sf(coords = c("x", "y"), crs = st_crs(roads2))
+
 g <- st_distance(rcentroids, st_union(roads2))
 
 class(g)
@@ -1324,12 +1381,14 @@ plot(st_geometry(roads2), add = TRUE)
 
 <!-- An example of extracting the distance to a road for each location of a random walk -->
 
+### Extract values from a path
+
 ```{r rw, out.width="60%", eval=FALSE, echo=FALSE, include=FALSE}
 
 set.seed(123)
 
 n <- 1000
-e <- extent(r)
+e <- ext(r)
 
 x<-c(ext(r)[1]) + cumsum(rnorm(n, 0, 2000) + 500)
 y<-c(ext(r)[3]) + cumsum(rnorm(n, 0, 2000)+ 500)
@@ -1339,8 +1398,6 @@ rw <- data.frame(x, y) |>
         st_combine() |>
         st_cast("LINESTRING") |>
         st_as_sf()
-
-
 
 plot(r)
 plot(st_geometry(roads2), add = TRUE)
@@ -1398,21 +1455,13 @@ Turn all cells that are at least 25km from the roads to polygons.
 r25 <- r
 r25[r25 < 25000] <- NA 
 
-pr <- as.polygons(r25, aggregate = TRUE)
+pr <- as.polygons(r25, aggregate = TRUE) |>
+        st_as_sf()
 plot(r)
-plot(pr, col = "blue", border = NA, add = TRUE)
+plot(st_geometry(pr), col = "blue", border = NA, add = TRUE)
 
 ```
 
-<br>
-
-<!-- ## Plotting with `rasterVis` -->
-
-<!-- ## `SpatialGrids` and `SpatialPixels` -->
-
-<!-- ## Grids -->
-
-<!-- ## Pixels -->
 
 ## -- Exercice 4 --
 
@@ -1468,7 +1517,7 @@ plot(st_geometry(a), add = TRUE)
 e <- extract(tavg, vect(a))
 
 # check distribution of values for mean annual temperature and precipitation
-hist(e[,1], xlab = "")
+hist(e[,2], xlab = "")
 
 
 ```
