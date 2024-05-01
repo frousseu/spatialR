@@ -164,6 +164,8 @@ Another important package is [stars](https://r-spatial.github.io/stars/) for spa
 
 <br>
 
+<!--
+
 # TODO
 
 - explain st_union
@@ -173,6 +175,7 @@ Another important package is [stars](https://r-spatial.github.io/stars/) for spa
 - base R pipe |>
 - explain st_intersects
 
+-->
 
 # VECTOR DATA (sf)
 
@@ -323,6 +326,7 @@ lon <- rnorm(100, mean = 72, sd = 0.1)
 
 ```
 
+<!--
 
 ### -- Solution --
 
@@ -351,10 +355,10 @@ plot(st_geometry(cef), axes = TRUE)
 # Alternatively, plot the results with mapview
 mapview(cef)
 
-
-
 ```
 
+
+-->
 
 <br>
 
@@ -526,10 +530,39 @@ The EPSG code 4326 is equivalent to giving the `"+proj=longlat +datum=WGS84 +ell
 
 ## -- Exercice 2 --
 
-Play with crs exercice
+Get some occurrences for the monarch butterfly (*Danaus plexippus*) using rgbif and the `occ_search` function and plot them for Quebec using the `gadm` function from the geodata package. Use the UTM zone 18N CRS.
 
+<!--
 
-```{r Ex2, include = FALSE, eval = FALSE}
+### -- Solution --
+
+```{r Ex22}
+
+monarchs <- occ_search(scientificName = "Danaus plexippus", hasCoordinate = TRUE, stateProvince = "Québec", country = "CA", limit = 5000)
+
+canada <- gadm('GADM', country='CAN', level=1) |> 
+            st_as_sf() # transform a SpatVector to an sf data.frame
+
+```
+
+<br><br>
+```{r Ex222}
+
+monarchs <- st_as_sf(monarchs$data, coords = c("decimalLongitude", "decimalLatitude"), crs = 4326)
+monarchs <- st_transform(monarchs, 32618)
+
+qc <- canada[canada$NAME_1=="Québec",]
+qc <- st_transform(qc, 32618)
+
+plot(st_geometry(qc))
+plot(st_geometry(monarchs), add = TRUE)
+
+```
+
+-->
+
+<!--
+```{r Ex2, include = FALSE, eval = FALSE, include = FALSE}
 canada <- gadm("GADM", country = c("USA","CAN"), level = 1) |>
     st_as_sf()
 canada <- ms_simplify(canada, 0.001)
@@ -547,6 +580,8 @@ w <- st_transform(w, 54030)
 w <- st_transform(w, 53045)
 
 ```
+
+-->
 
 <!--
 
@@ -1003,35 +1038,39 @@ plot(ch,border="red",col="blue",lwd=10)
 
 ## -- Exercice 3 --
 
-Calculate the proportion of forest in 10 random buffers across a landscape. Let's first generate a fictious landscape.
+Calculate the proportion of forests in 10 random 2000m buffers across a landscape. Let's first generate a fictious landscape.
 
-```{r ex0, tidy=FALSE, out.width="60%"}
+```{r ex0, tidy=FALSE, out.width="80%"}
 
 set.seed(123)
 
-#x<-runif(100, -74, -71) # generate random points
-#y<-runif(100, 45, 47)
+n <- 20
+x<-rnorm(n, -74, 0.1) # generate random points
+y<-rnorm(n, 45, 0.1)
 
 
-h <- x |> # turn it to spatial points 
-     st_as_sfc() |> 
-     st_buffer(dist = 300 * rgamma(nrow(x), 2, 1)) |> # build random gamma buffers around them 
+h <- data.frame(x,y) |> # turn it to spatial points 
+     st_as_sf(coords = c("x", "y"), crs = 4326) |> 
+     st_geometry() |>
+     st_transform(32198) |>
+     st_buffer(dist = 1000 * rgamma(n, 2, 1)) |> # build random gamma buffers around them 
      lapply(function(i){st_as_sfc(st_bbox(i))}) |>
      do.call("c", args = _) |>
+    st_as_sf() |>
      st_union() # put them all in a single polygon
    
 plot(h, col = "green4", border = NA, axes = TRUE)
 
 ```
 
-<!-- ### -- Solution -- -->
+<!-- ### -- Solution -- 
 
-```{r ex0sol, echo=FALSE, include=FALSE, tidy=FALSE, out.width="60%"}
+```{r ex0sol, echo=TRUE, include=TRUE, tidy=FALSE, out.width = "60%"}
 
 # First throw 10 random points within the envelope of the landscape and then generates buffers around these points
 b <- st_convex_hull(h) |>
      st_sample(10, type = "random") |>
-     st_buffer(dist = 1000)
+     st_buffer(dist = 2000)
 
 
 # Plot the buffers
@@ -1044,16 +1083,15 @@ plot(cuts, add = TRUE, col = "red", border = NA)
 
 int <- lengths(st_intersects(b,h))
 
-ifelse(int, 0, st_area(cuts) / st_area(b))
+int[ int > 0] <- st_area(cuts)
 
-# Compute the proportion of forested areas within each buffer
-#pa <- gArea(int, byid = TRUE) / gArea(b, byid = TRUE)
+perc <- 100 * int / st_area(b)
 
-# Add the value on the plot
-#text(coordinates(b), label = round(pa, 2))
+text(st_coordinates(st_centroid(b)), label = round(perc, 2), cex = 0.7)
 
 ```
 
+-->
 
 # RASTERS (terra)
 
@@ -1093,7 +1131,7 @@ list.files("/home/frousseu/Documents/github/spatialR/data")
 
 Reading can be done directly with the `rast` function.
  
-```{r read_rast, out.width="70%"}
+```{r read_rast, out.width="80%"}
 
 r1 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031F.tif")
 r2 <- rast("/home/frousseu/Documents/github/spatialR/data/cdem_dem_031G.tif")
@@ -1225,6 +1263,31 @@ env
 Each time a raster is projected or transformed, the original values will be modified and calculation will be done to fit it in the new dimensions and resolution of the output raster. Original values are lost. Thus, **it is always better to transform the crs of vectors to fit it to a raster than vice versa**.
 
 
+## -- Exercice 4 --
+
+Crop and mask an elevation raster to the Quebec province. You can use the geodata package functions to get the elevation data.
+
+```{r ex4_1, out.width="80%", fig.height=5, fig.width=7}
+
+library(geodata)
+e <- elevation_30s(country = "CAN", path = getwd(), mask = TRUE)
+
+```
+
+<!--
+
+## -- Solution --
+
+```{r ex4_2, out.width="80%", fig.height=5, fig.width=7}
+
+e <- elevation_30s(country = "CAN", path = getwd(), mask = TRUE)
+q <- canada[canada$NAME_1 == "Québec", ]
+e <- crop(e, q, mask = TRUE)
+plot(e)
+
+```
+
+-->
 
 ## Raster operations
 
@@ -1245,7 +1308,7 @@ plot(st_geometry(x), add = TRUE)
 
 <br>
 
-```{r extract}
+```{r extract1}
 
 e <- extract(elevation, x)
 head(e)
@@ -1256,7 +1319,7 @@ hist(e[, 2] , xlab = "Altitude", main = "")
 
 
 ### Extract multiple layers
-```{r extract}
+```{r extract2}
 
 e <- extract(env, x)
 head(e)
@@ -1326,7 +1389,7 @@ rtrille
 
 
 plot(rtrille)
-plot(st_geometry(trille), col = gray(0, 0.25), add = TRUE) 
+#plot(st_geometry(trille), col = gray(0, 0.25), add = TRUE) 
 plot(st_geometry(st_transform(canada, st_crs(trille))), add = TRUE)
 
 
@@ -1381,7 +1444,7 @@ plot(st_geometry(roads2), add = TRUE)
 
 <!-- An example of extracting the distance to a road for each location of a random walk -->
 
-### Extract values from a path
+<!-- ### Extract values from a path
 
 ```{r rw, out.width="60%", eval=FALSE, echo=FALSE, include=FALSE}
 
@@ -1409,6 +1472,8 @@ hist(e[, 2])
 
 
 ```
+
+-->
 
 <br>
 
@@ -1463,13 +1528,16 @@ plot(st_geometry(pr), col = "blue", border = NA, add = TRUE)
 ```
 
 
-## -- Exercice 4 --
+## -- Exercice 5 --
 
 Get data for *Trillium cernuum* using package `rgbif` and calculate the mean annual temperature in the species range. [Bioclimatic variables](http://worldclim.org/bioclim) are described in the WorldClim pages.
 
 Here is how to download the data. Note that the object returned by `occ_search` is a gbif object from which the data element need to be extracted. This element is a `tibble` that needs to be turned to a `data.frame` in order to convert it to a spatial object.
 
 ```{r ex2, eval=FALSE}
+
+library(geodata)
+library(rgbif)
 
 # download temperature data
 tavg <- worldclim_country("CAN", var = "tavg", path = getwd())
@@ -1483,7 +1551,7 @@ x <- as.data.frame( x$data)
 
 <br>
 
-<!-- ### -- Solution -- -->
+<!-- ### -- Solution -- 
 
 ```{r ex2sol, out.width="100%", dev.args=list(pointsize=9), echo=FALSE, include=FALSE}
 
@@ -1522,43 +1590,16 @@ hist(e[,2], xlab = "")
 
 ```
 
+-->
 
-# MAPPING
+# Mapping
 
-## STATIC
-
-### `plot`
-
-```{r map_plot, out.width="70%", dev.args=list(pointsize=9)}
-
-
-
-```
-
-### `spplot`
-
-```{r spplot_map, out.width="70%", dev.args=list(pointsize=9)}
-
-
-```
-
-### `levelplot`
-
-```{r levelplot, out.width="70%", dev.args=list(pointsize=9)}
-
-
-
-```
-
-<br>
-
-### `ggspatial`
+### `ggplot2`
 
 ```{r ggspatial_map, out.width="70%", dev.args=list(pointsize=9)}
 
 library(ggplot2)
 library(tidyterra)
-
 
 
 ggplot()+
@@ -1571,23 +1612,7 @@ ggplot()+
 
 ```
 
-<br>
-
-### `OpenStreetMap`
-
-```{r OSM, fig.keep="last"}
-
-
-```
-
-<br>
-
-### `ggmap`
-
-```{r ggmap}
-
-
-```
+<!--
 
 <br>
 
@@ -1604,34 +1629,37 @@ select, drawPoly from package raster to interactively select elements
 
 ```
 
+
 <br>
 
+-->
 
 
 ### `leaflet`
-
-Here present leaflet and leafletExtras
 
 ```{r leaflet1, tidy=FALSE, message=TRUE, warning=TRUE, eval = FALSE}
 
 library(leaflet)
 library(leaflet.extras)
 
+trille <- st_transform(trille, 4326)
+
 leaflet(cat) %>% 
   addTiles() %>%
-  addCircleMarkers(data = cat, group = 'cat') %>%
-  addDrawToolbar(targetGroup = 'cat', editOptions = editToolbarOptions(selectedPathOptions = selectedPathOptions())) %>%
-  addLayersControl(overlayGroups = c('cat'),options =layersControlOptions(collapsed=FALSE)) %>%
+  addCircleMarkers(data = trille, group = 'trille') %>%
+  addDrawToolbar(targetGroup = 'trille', editOptions = editToolbarOptions(selectedPathOptions = selectedPathOptions())) %>%
+  addLayersControl(overlayGroups = c('trille'),options =layersControlOptions(collapsed=FALSE)) %>%
   addMeasurePathToolbar(options =measurePathOptions(imperial = TRUE,minPixelDistance = 100,showDistances = FALSE))
 
 
 ```
 
-<br>
 
-### `tmap` 
+<!-- ### `tmap` -->
 
-```{r tmap, out.width="100%"}
+<!--
+
+```{r tmap, out.width="100%", eval = FALSE, include = FALSE}
 
 cat$attack<-as.factor(cat$Attack)
 
@@ -1641,21 +1669,21 @@ library(tmap)
 
 canada$area <- as.numeric(st_area(canada))
 
-tm_shape(canada)+
-  tm_polygons(fill = "area")#+
-#  tm_shape(trille)+
+tm_shape(canada) +
+  tm_polygons(fill = "area") +
+  tm_shape(trille)
 #  tm_dots("attack")+
 #  tm_layout(basemaps=c("Esri.WorldImagery","Esri.WorldShadedRelief","Esri.NatGeoWorldMap"))
 
 ```
 
-
+-->
 
 <br>
 
 ### `mapedit`
 
-Here is a test with using [mapedit](http://r-spatial.org/r/2017/06/09/mapedit_0-2-0.html) functionality.
+Create shapes with [mapedit](http://r-spatial.org/r/2017/06/09/mapedit_0-2-0.html) functionality.
 
 ```{r mapedit, eval = FALSE}
 
@@ -1689,7 +1717,13 @@ mapview(trille) +
 
 
 ```
-# MORE POSSIBILITIES
+# Other resources
+<br><br>
+[rspatial.org](rspatial.org)
+<br><br>
+[Geocomputation with R](https://r.geocompx.org/)
+
+<!--
 
 The main book for learning to use R for spatial data is probably [Applied Spatial Data Analysis with R](http://www.asdar-book.org/) by Bivand et al. (2013)
 
@@ -1713,11 +1747,17 @@ A good online reference for doing spatial analyses with R is [rspatial.org](rspa
 
 <!--![rspatial.org](/home/frousseu/Documents/github/spatialR/rspatial.png)--> 
 
+<!--
+
 <br>
 
 ## Special packages
 
 ### Landscape metrics with `SDMTools` or `spatialEco`
+
+-->
+
+<!--
 
 ```{r metrics1, eval = FALSE, include = FALSE}
 
@@ -1750,6 +1790,8 @@ Scalebar(x=90,y=3,distance=20,unit='m',scale=1)
 a
 ```
 
+-->
+
 <!-- ### Spatial statistics with `spatstat` -->
 
 <!-- ### Spatial dependence with `spdep` -->
@@ -1766,7 +1808,6 @@ a
 
 <!-- plot(v,vfit) -->
 
-<br>
 
 <!-- ### kriging -->
 
@@ -1869,6 +1910,8 @@ plot(eco,col=colo.scale(eco$elev,c("brown","orange","lightgoldenrod","green","da
 
 <!-- ### RGRASS -->
 
+<!--
+
 # `sf`: SIMPLE FEATURES FOR R
 
 [Vignette 1](https://cran.r-project.org/web/packages/sf/vignettes/sf1.html)
@@ -1880,5 +1923,7 @@ plot(eco,col=colo.scale(eco$elev,c("brown","orange","lightgoldenrod","green","da
 
 - Teluq R spatial
 - Geocomputations with R
+
+-->
 
 
