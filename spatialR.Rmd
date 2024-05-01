@@ -150,6 +150,10 @@ knitr::opts_chunk$set(cache = TRUE, comment = "##", eval = TRUE, error = TRUE, e
 
 # INTRODUCTION
 
+Most files for the workshop can be found here: [https://cdn.hebergix.com/fr/geospatialR/data/](https://cdn.hebergix.com/fr/geospatialR/data/)
+
+
+<br><br>
 The two most important R packages for manipulating spatial objects are:
 <br><br>
 [sf](https://r-spatial.github.io/sf) <br> 
@@ -688,7 +692,7 @@ st_write(outaouais, "/home/frousseu/Documents/github/spatialR/outaouais.gpkg", a
 
 ### Intersections
 
-The function over from package sp is used to determine whether different entities overlap. It returns a vector or a data.frame with the identities or the characteristics of overlapping elements.
+<!-- The function over from package sp is used to determine whether different entities overlap. It returns a vector or a data.frame with the identities or the characteristics of overlapping elements. -->
 
 ```{r overlay1, fig.width=7,fig.height=4,out.width="100%"}
 
@@ -1074,8 +1078,11 @@ plot(b, add = TRUE)
 # Intersect the buffers with the forest and plot the result
 cuts <- st_intersection(b, h)
 plot(cuts, add = TRUE, col = "red", border = NA)
+st_area(cuts)
 
 int <- lengths(st_intersects(b,h))
+int
+
 
 int[ int > 0] <- st_area(cuts)
 
@@ -1267,7 +1274,6 @@ e <- elevation_30s(country = "CAN", path = getwd(), mask = TRUE)
 
 ```
 
-<!--
 
 ## -- Solution --
 
@@ -1280,7 +1286,6 @@ plot(e)
 
 ```
 
--->
 
 ## Raster operations
 
@@ -1533,18 +1538,18 @@ library(geodata)
 library(rgbif)
 
 # download temperature data
-tavg <- worldclim_country("CAN", var = "tavg", path = getwd())
+tavg <- worldclim_country("CAN", var = "tavg", path = getwd()) # this is too big and slow to download!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 tavg <- mean(tavg)
 
 # download records
 x <- occ_search(scientificName = "Trillium erectum", limit = 1000, hasCoordinate = TRUE, country = "CA")
-x <- as.data.frame( x$data)
+x <- st_as_sf(x$data, coords = c("decimalLongitude", "decimalLatitude"), crs = 4326)
 
 ```
 
 <br>
 
-<!-- ### -- Solution -- 
+### -- Solution -- 
 
 ```{r ex2sol, out.width="100%", dev.args=list(pointsize=9), echo=FALSE, include=FALSE}
 
@@ -1583,7 +1588,6 @@ hist(e[,2], xlab = "")
 
 ```
 
--->
 
 # Mapping
 

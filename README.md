@@ -1,3 +1,18 @@
+
+# new
+
+- sfc_polygon (when does terra play well with sf?)
+- better explain st_union
+- make all data available somewhere
+- remove the worldclim data thing that is way too big
+- add a raster exercice
+- exercice can be slightly more complex
+- reduce the number of different datasets and the different naming schemes
+- Better explain exercice 5 with climate niche concept better explain. Say we want a histogram.
+- tall about the different sf class
+- talk about the SpatRaster and SpatVector class
+
+
 # spatialR
 Course on using R for spatial tasks
 
